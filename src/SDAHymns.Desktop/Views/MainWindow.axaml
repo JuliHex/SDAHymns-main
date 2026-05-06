@@ -1,0 +1,448 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="SDAHymns.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="SDA Hymns - Display Test"
+        Width="800" Height="600"
+        Background="Black">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" Background="Black">
+        <!-- Update Notification Banner -->
+        <Border Grid.Row="0"
+                IsVisible="{Binding IsUpdateAvailable}"
+                Background="#2E7D32"
+                BorderBrush="#1B5E20"
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="🎉"
+                               VerticalAlignment="Center"
+                               FontSize="18"/>
+                    <TextBlock Text="New version available!"
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"
+                               FontSize="14"
+                               Foreground="White"/>
+                    <TextBlock Text="{Binding LatestVersion, StringFormat='v{0}'}"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="#C8E6C9"/>
+                </StackPanel>
+
+                <ProgressBar Grid.Column="1"
+                             IsVisible="{Binding IsDownloadingUpdate}"
+                             Value="{Binding DownloadProgress}"
+                             Minimum="0"
+                             Maximum="100"
+                             Height="20"
+                             Margin="15,0"
+                             VerticalAlignment="Center"/>
+
+                <Button Grid.Column="2"
+                        Content="Update Now"
+                        Command="{Binding UpdateNowCommand}"
+                        IsEnabled="{Binding !IsDownloadingUpdate}"
+                        Background="#1B5E20"
+                        Foreground="White"
+                        Padding="15,8"
+                        Margin="0,0,10,0"
+                        FontWeight="Bold"/>
+
+                <Button Grid.Column="3"
+                        Content="Later"
+                        Command="{Binding DismissUpdateCommand}"
+                        IsEnabled="{Binding !IsDownloadingUpdate}"
+                        Background="#00000044"
+                        Foreground="White"
+                        Padding="15,8"/>
+            </Grid>
+        </Border>
+
+        <!-- Top Bar: Search & Controls -->
+        <Border Grid.Row="1"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="15">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <TextBox Grid.Column="0"
+                         x:Name="SearchTextBox"
+                         Text="{Binding SearchQuery}"
+                         Watermark="Search hymns by number or title... (Ctrl+F to focus)"
+                         FontSize="16"
+                         Background="#2A2A2A"
+                         Foreground="White"
+                         BorderBrush="#444444"
+                         Margin="0,0,10,0"/>
+
+                <ComboBox Grid.Column="1"
+                          Width="150"
+                          SelectedItem="{Binding SelectedCategory}"
+                          VerticalAlignment="Center"
+                          Background="#2A2A2A"
+                          Foreground="White"
+                          BorderBrush="#444444"
+                          Margin="0,0,10,0">
+                    <ComboBox.Items>
+                        <x:String>crestine</x:String>
+                        <x:String>companioni</x:String>
+                        <x:String>exploratori</x:String>
+                        <x:String>licurici</x:String>
+                        <x:String>tineret</x:String>
+                    </ComboBox.Items>
+                </ComboBox>
+
+                <ComboBox Grid.Column="2"
+                          Width="180"
+                          ItemsSource="{Binding AvailableProfiles}"
+                          SelectedItem="{Binding ActiveProfile}"
+                          VerticalAlignment="Center"
+                          Background="#2A2A2A"
+                          Foreground="White"
+                          BorderBrush="#444444"
+                          Margin="0,0,5,0"
+                          ToolTip.Tip="Display Profile">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <Button Grid.Column="3"
+                        Content="⚙"
+                        Click="EditProfiles_Click"
+                        ToolTip.Tip="Edit Profiles"
+                        Width="40"
+                        Height="35"
+                        FontSize="16"
+                        Margin="0,0,10,0"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <Button Grid.Column="4"
+                        Content="{Binding FavoriteIcon}"
+                        Command="{Binding ToggleFavoriteCommand}"
+                        ToolTip.Tip="Toggle Favorite (Ctrl+D)"
+                        Width="50"
+                        Height="35"
+                        FontSize="18"
+                        Margin="0,0,10,0"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <ToggleButton Grid.Column="5"
+                              Content="{Binding AspectRatioLabel}"
+                              IsChecked="{Binding IsAspectRatio43}"
+                              Width="100"
+                              Height="35"
+                              Margin="0,0,10,0"
+                              Background="#2A2A2A"
+                              Foreground="White"
+                              BorderBrush="#444444"/>
+
+                <Button Grid.Column="6"
+                        Content="⚙ Settings"
+                        Click="OpenSettings_Click"
+                        ToolTip.Tip="Open Settings (Ctrl+,)"
+                        Width="110"
+                        Height="35"
+                        Margin="0,0,10,0"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <Button Grid.Column="7"
+                        Content="{Binding DisplayWindowButtonLabel}"
+                        Click="ToggleDisplayWindow_Click"
+                        ToolTip.Tip="Toggle Display Window (F5)"
+                        Width="140"
+                        Height="35"
+                        Background="#0078D4"
+                        Foreground="White"
+                        BorderBrush="#005A9E"/>
+            </Grid>
+        </Border>
+
+        <!-- Recent Hymns -->
+        <Border Grid.Row="2"
+                Background="#0D0D0D"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <StackPanel>
+                <TextBlock Text="Recent:"
+                           Foreground="#888888"
+                           FontSize="12"
+                           Margin="0,0,0,5"/>
+                <ItemsControl ItemsSource="{Binding RecentHymns}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="5"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Number}"
+                                    Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).LoadHymnFromRecentCommand}"
+                                    CommandParameter="{Binding}"
+                                    Background="#2A2A2A"
+                                    Foreground="White"
+                                    BorderBrush="#444444"
+                                    Padding="10,5"
+                                    MinWidth="50"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Search Results List -->
+        <ListBox Grid.Row="3"
+                 ItemsSource="{Binding SearchResults}"
+                 SelectedItem="{Binding SelectedSearchResult}"
+                 Background="#0D0D0D"
+                 Foreground="White"
+                 BorderBrush="#333333"
+                 BorderThickness="0,0,0,1"
+                 MaxHeight="200">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0">
+                            <Run Text="{Binding Number}" FontWeight="Bold"/>
+                            <Run Text=". "/>
+                            <Run Text="{Binding Title}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding VerseCount, StringFormat='{}{0} verses'}"
+                                   Foreground="#888888"
+                                   Margin="10,0,5,0"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Selected Hymn Info -->
+        <Border Grid.Row="4"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <StackPanel>
+                <TextBlock Text="{Binding HymnTitle}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+                <TextBlock Foreground="#888888" FontSize="14">
+                    <Run Text="{Binding CurrentHymn.Category.Name}"/>
+                    <Run Text=" • "/>
+                    <Run Text="{Binding Verses.Count}"/>
+                    <Run Text=" verses"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Verse Content Display - 4:3 Aspect Ratio Container -->
+        <Viewbox Grid.Row="5" Stretch="Uniform">
+            <Border Width="{Binding DisplayWidth}"
+                    Height="{Binding DisplayHeight}"
+                    Background="Black">
+                <Grid RowDefinitions="*,Auto">
+                    <!-- Verse Content -->
+                    <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly">
+                        <StackPanel VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
+                                   Width="1000"
+                                   Margin="80,50,80,50">
+                            <!-- Verse Label (e.g., "1.", "Refren") -->
+                            <TextBlock Text="{Binding CurrentVerseLabel}"
+                                      FontSize="28"
+                                      FontWeight="SemiBold"
+                                      HorizontalAlignment="Left"
+                                      Margin="0,0,0,30"
+                                      Foreground="#CCCCCC"/>
+
+                            <!-- Verse Content -->
+                            <TextBlock Text="{Binding CurrentVerseContent}"
+                                      FontSize="48"
+                                      TextWrapping="Wrap"
+                                      TextAlignment="Left"
+                                      LineHeight="65"
+                                      Foreground="White"/>
+                        </StackPanel>
+                    </Viewbox>
+
+                    <!-- Bottom verse indicator -->
+                    <Border Grid.Row="1"
+                            Background="#0D0D0D"
+                            BorderBrush="#333333"
+                            BorderThickness="0,1,0,0"
+                            Padding="15">
+                        <TextBlock Text="{Binding VerseIndicator}"
+                                  FontSize="16"
+                                  HorizontalAlignment="Center"
+                                  Foreground="#888888"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Viewbox>
+
+        <!-- Navigation Buttons -->
+        <Border Grid.Row="6"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,1,0,1"
+                Padding="20">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <Button Content="◀ Previous"
+                        Command="{Binding PreviousVerseCommand}"
+                        ToolTip.Tip="Previous Verse (←, PageUp, Shift+Space)"
+                        Width="140"
+                        Height="45"
+                        FontSize="16"
+                        Margin="10"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <Button Content="Next ▶"
+                        Command="{Binding NextVerseCommand}"
+                        ToolTip.Tip="Next Verse (→, PageDown, Space)"
+                        Width="140"
+                        Height="45"
+                        FontSize="16"
+                        Margin="10"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Audio Controls Bar -->
+        <Border Grid.Row="7"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,1,0,1"
+                Padding="15,10"
+                IsVisible="{Binding IsAudioLoaded}">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
+                <!-- Play/Pause Button -->
+                <Button Grid.Column="0"
+                        Content="{Binding PlayPauseIcon}"
+                        Command="{Binding PlayPauseAudioCommand}"
+                        ToolTip.Tip="{Binding PlayPauseTooltip}"
+                        Width="50"
+                        Height="40"
+                        FontSize="18"
+                        Margin="0,0,10,0"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <!-- Stop Button -->
+                <Button Grid.Column="1"
+                        Content="⏹"
+                        Command="{Binding StopAudioCommand}"
+                        ToolTip.Tip="Stop"
+                        Width="50"
+                        Height="40"
+                        FontSize="18"
+                        Margin="0,0,10,0"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+
+                <!-- Time Display -->
+                <TextBlock Grid.Column="2"
+                          Text="{Binding AudioTimeDisplay}"
+                          VerticalAlignment="Center"
+                          Foreground="White"
+                          FontSize="14"
+                          FontFamily="Consolas"
+                          Margin="0,0,15,0"
+                          MinWidth="100"/>
+
+                <!-- Seek Slider -->
+                <Slider Grid.Column="3"
+                        Value="{Binding AudioPosition}"
+                        Minimum="0"
+                        Maximum="{Binding AudioDuration}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,15,0"
+                        ToolTip.Tip="Seek"/>
+
+                <!-- Volume Icon -->
+                <TextBlock Grid.Column="4"
+                          Text="🔊"
+                          VerticalAlignment="Center"
+                          FontSize="16"
+                          Margin="0,0,5,0"/>
+
+                <!-- Volume Slider -->
+                <Slider Grid.Column="5"
+                        Value="{Binding AudioVolume}"
+                        Minimum="0"
+                        Maximum="100"
+                        Width="100"
+                        VerticalAlignment="Center"
+                        Margin="0,0,15,0"
+                        ToolTip.Tip="Volume"/>
+
+                <!-- Auto-Advance Toggle -->
+                <ToggleButton Grid.Column="6"
+                              Content="🎵 Auto"
+                              IsChecked="{Binding AutoAdvanceEnabled}"
+                              ToolTip.Tip="Auto-advance verses with timing"
+                              Height="40"
+                              Padding="10,0"
+                              Margin="0,0,10,0"
+                              Background="#2A2A2A"
+                              Foreground="White"
+                              BorderBrush="#444444"/>
+
+                <!-- Record Timings Button -->
+                <Button Grid.Column="7"
+                        Content="🎯 Record"
+                        Click="RecordTimings_Click"
+                        ToolTip.Tip="Record verse timings"
+                        Height="40"
+                        Padding="10,0"
+                        Background="#2E7D32"
+                        Foreground="White"
+                        BorderBrush="#1B5E20"/>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="8"
+                Background="#0D0D0D"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,0"
+                Padding="15,10">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                          Text="{Binding StatusMessage}"
+                          FontSize="14"
+                          Foreground="#888888"/>
+                <TextBlock Grid.Column="1"
+                          Text="Press F1 for keyboard shortcuts"
+                          FontSize="12"
+                          Foreground="#666666"
+                          FontStyle="Italic"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

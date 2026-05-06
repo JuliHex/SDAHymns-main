@@ -1,0 +1,309 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="520"
+        x:Class="SDAHymns.Desktop.Views.RemoteWidget"
+        x:DataType="vm:RemoteWidgetViewModel"
+        Title="SDAHymns Remote"
+        Width="280"
+        Height="520"
+        CanResize="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        Topmost="{Binding IsAlwaysOnTop}">
+
+    <Window.Styles>
+        <Style Selector="Border.remote-container">
+            <Setter Property="Background" Value="#1E1E2E"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BoxShadow" Value="0 4 20 0 #3C000000"/>
+        </Style>
+
+        <Style Selector="Border.custom-titlebar">
+            <Setter Property="Background" Value="#16161E"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="CornerRadius" Value="12 12 0 0"/>
+            <Setter Property="Padding" Value="12,0"/>
+        </Style>
+
+        <Style Selector="TextBlock.title">
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="Button.titlebar-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#9CA3AF"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.titlebar-button:pointerover">
+            <Setter Property="Background" Value="#2A2A3C"/>
+        </Style>
+
+        <Style Selector="Button.titlebar-button.close:pointerover">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="Border.status-panel">
+            <Setter Property="Background" Value="#2A2A3C"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style Selector="TextBlock.status-title">
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="TextBlock.status-subtitle">
+            <Setter Property="Foreground" Value="#9CA3AF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+
+        <Style Selector="TextBox.hymn-input">
+            <Setter Property="Background" Value="#2A2A3C"/>
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="#3E3E52"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <Style Selector="TextBox.hymn-input:focus">
+            <Setter Property="BorderBrush" Value="#6366F1"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#7C3AED"/>
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#5B21B6"/>
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#2A2A3C"/>
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="#3E3E52"/>
+        </Style>
+
+        <Style Selector="Button.numpad">
+            <Setter Property="Background" Value="#2A2A3C"/>
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.numpad:pointerover">
+            <Setter Property="Background" Value="#3E3E52"/>
+        </Style>
+
+        <Style Selector="Button.icon-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#9CA3AF"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style Selector="Button.icon-button:pointerover">
+            <Setter Property="Background" Value="#2A2A3C"/>
+        </Style>
+
+        <Style Selector="Button.icon-button.active">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="Border.bottom-toolbar">
+            <Setter Property="Background" Value="#16161E"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="CornerRadius" Value="0 0 12 12"/>
+            <Setter Property="Padding" Value="12,0"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Classes="remote-container">
+        <DockPanel>
+            <!-- Custom Title Bar -->
+            <Border Classes="custom-titlebar" DockPanel.Dock="Top" Name="TitleBar" PointerPressed="TitleBar_PointerPressed">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Classes="title" Text="SDAHymns Remote"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button Classes="titlebar-button" Content="≡" ToolTip.Tip="Menu">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Header="Advanced Mode" Click="AdvancedMode_Click"/>
+                                    <MenuItem Header="Toggle Number Pad" Command="{Binding $parent[Window].((vm:RemoteWidgetViewModel)DataContext).ToggleNumberPadCommand}"/>
+                                    <Separator/>
+                                    <MenuItem Header="About SDAHymns"/>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                        <Button Classes="titlebar-button" Content="_" Click="Minimize_Click" ToolTip.Tip="Minimize"/>
+                        <Button Classes="titlebar-button close" Content="×" Click="Close_Click" ToolTip.Tip="Close"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Bottom Toolbar -->
+            <Border Classes="bottom-toolbar" DockPanel.Dock="Bottom">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                    <Button Classes="icon-button" Content="📌" Command="{Binding ToggleAlwaysOnTopCommand}"
+                            Classes.active="{Binding IsAlwaysOnTop}"
+                            ToolTip.Tip="Always on Top"/>
+                    <Button Classes="icon-button" Content="🔒" Command="{Binding ToggleLockPositionCommand}"
+                            Classes.active="{Binding IsPositionLocked}"
+                            ToolTip.Tip="Lock Position"/>
+                    <Button Classes="icon-button" Content="⚙" Click="AdvancedMode_Click"
+                            ToolTip.Tip="Advanced Mode"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Main Content Area -->
+            <ScrollViewer>
+                <StackPanel Margin="16" Spacing="12">
+                    <!-- Current Hymn Display -->
+                    <Border Classes="status-panel">
+                        <StackPanel>
+                            <TextBlock Classes="status-title" Text="{Binding CurrentHymnDisplay}"/>
+                            <TextBlock Classes="status-subtitle" Text="{Binding VerseIndicator}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Category Selection -->
+                    <StackPanel>
+                        <TextBlock Text="Category:" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox HorizontalAlignment="Stretch"
+                                  SelectedItem="{Binding SelectedCategory}"
+                                  Background="#2A2A3C"
+                                  Foreground="White"
+                                  BorderBrush="#3E3E52"
+                                  Margin="0,0,0,8">
+                            <ComboBox.Items>
+                                <x:String>crestine</x:String>
+                                <x:String>companioni</x:String>
+                                <x:String>exploratori</x:String>
+                                <x:String>licurici</x:String>
+                                <x:String>tineret</x:String>
+                            </ComboBox.Items>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Hymn Input -->
+                    <StackPanel>
+                        <TextBlock Text="Load Hymn:" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBox Classes="hymn-input"
+                                 Text="{Binding HymnNumberInput}"
+                                 Watermark="Enter hymn number..."
+                                 Name="HymnInput">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding LoadHymnCommand}"/>
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                    </StackPanel>
+
+                    <!-- Number Pad -->
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,*,*" IsVisible="{Binding ShowNumberPad}" ColumnSpacing="6" RowSpacing="6">
+                        <!-- Row 1: 7,8,9 -->
+                        <Button Grid.Row="0" Grid.Column="0" Classes="numpad" Content="7" Command="{Binding NumberPadPressCommand}" CommandParameter="7"/>
+                        <Button Grid.Row="0" Grid.Column="1" Classes="numpad" Content="8" Command="{Binding NumberPadPressCommand}" CommandParameter="8"/>
+                        <Button Grid.Row="0" Grid.Column="2" Classes="numpad" Content="9" Command="{Binding NumberPadPressCommand}" CommandParameter="9"/>
+
+                        <!-- Row 2: 4,5,6 -->
+                        <Button Grid.Row="1" Grid.Column="0" Classes="numpad" Content="4" Command="{Binding NumberPadPressCommand}" CommandParameter="4"/>
+                        <Button Grid.Row="1" Grid.Column="1" Classes="numpad" Content="5" Command="{Binding NumberPadPressCommand}" CommandParameter="5"/>
+                        <Button Grid.Row="1" Grid.Column="2" Classes="numpad" Content="6" Command="{Binding NumberPadPressCommand}" CommandParameter="6"/>
+
+                        <!-- Row 3: 1,2,3 -->
+                        <Button Grid.Row="2" Grid.Column="0" Classes="numpad" Content="1" Command="{Binding NumberPadPressCommand}" CommandParameter="1"/>
+                        <Button Grid.Row="2" Grid.Column="1" Classes="numpad" Content="2" Command="{Binding NumberPadPressCommand}" CommandParameter="2"/>
+                        <Button Grid.Row="2" Grid.Column="2" Classes="numpad" Content="3" Command="{Binding NumberPadPressCommand}" CommandParameter="3"/>
+
+                        <!-- Row 4: ←,0,⏎ -->
+                        <Button Grid.Row="3" Grid.Column="0" Classes="numpad" Content="←" Command="{Binding NumberPadBackspaceCommand}"/>
+                        <Button Grid.Row="3" Grid.Column="1" Classes="numpad" Content="0" Command="{Binding NumberPadPressCommand}" CommandParameter="0"/>
+                        <Button Grid.Row="3" Grid.Column="2" Classes="numpad" Content="⏎" Command="{Binding LoadHymnCommand}"/>
+                    </Grid>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Spacing="8">
+                        <Button Classes="primary" Content="SHOW" Command="{Binding LoadHymnCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Classes="secondary" Content="BLANK" Command="{Binding BlankDisplayCommand}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Verse Navigation -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Classes="secondary" Content="▲ Prev" Command="{Binding PreviousVerseCommand}"/>
+                        <Button Grid.Column="1" Classes="secondary" Content="▼ Next" Command="{Binding NextVerseCommand}"/>
+                    </Grid>
+
+                    <!-- Audio Control -->
+                    <Button Classes="primary"
+                            Content="▶ Play Audio"
+                            Command="{Binding ToggleAudioCommand}"
+                            IsVisible="{Binding IsAudioAvailable}"
+                            HorizontalAlignment="Stretch"/>
+
+                    <!-- Status Message -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#9CA3AF"
+                               FontSize="11"
+                               TextAlignment="Center"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>

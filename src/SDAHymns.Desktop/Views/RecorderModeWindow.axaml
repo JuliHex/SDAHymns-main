@@ -1,0 +1,213 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="SDAHymns.Desktop.Views.RecorderModeWindow"
+        x:DataType="vm:RecorderModeViewModel"
+        Title="Timing Recorder"
+        Width="600" Height="500"
+        Background="#1A1A1A">
+
+    <Design.DataContext>
+        <vm:RecorderModeViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+        <!-- Hymn Title -->
+        <Border Grid.Row="0"
+                Background="#0D0D0D"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="20,15">
+            <TextBlock Text="{Binding HymnTitle}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Foreground="White"/>
+        </Border>
+
+        <!-- Instructions -->
+        <Border Grid.Row="1"
+                Background="#1A1A1A"
+                Padding="20,15">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Recording Instructions:"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="White"/>
+                <TextBlock TextWrapping="Wrap"
+                           Foreground="#CCCCCC"
+                           FontSize="12">
+                    1. Press Play to start the audio<LineBreak/>
+                    2. Press TAP button or Spacebar at the start of each verse<LineBreak/>
+                    3. Timings will be recorded automatically<LineBreak/>
+                    4. Press Stop when done, then Save Timings
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Recorded Timings List -->
+        <Border Grid.Row="2"
+                Background="#0D0D0D"
+                BorderBrush="#333333"
+                BorderThickness="0,1,0,1"
+                Padding="20">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Recorded Timings:"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="White"/>
+
+                <Border Background="#1A1A1A"
+                        BorderBrush="#333333"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                    <ScrollViewer MaxHeight="200">
+                        <ItemsControl ItemsSource="{Binding RecordedTimings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#2A2A2A"
+                                            BorderBrush="#333333"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="10">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding VerseNumber, StringFormat='Verse {0}:'}"
+                                                       Foreground="White"
+                                                       FontWeight="SemiBold"
+                                                       Width="80"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayTime}"
+                                                       Foreground="#CCCCCC"
+                                                       FontFamily="Consolas"/>
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Timestamp, StringFormat='{}{0:F2}s'}"
+                                                       Foreground="#888888"
+                                                       FontSize="11"
+                                                       Margin="10,0"/>
+                                            <Button Grid.Column="3"
+                                                    Content="✕"
+                                                    Command="{Binding $parent[Window].((vm:RecorderModeViewModel)DataContext).RemoveTimingCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#8B0000"
+                                                    Foreground="White"
+                                                    BorderThickness="0"
+                                                    Padding="8,4"
+                                                    FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <TextBlock Text="{Binding RecordedTimings.Count, StringFormat='Total: {0} timings'}"
+                           Foreground="#888888"
+                           FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Playback Controls -->
+        <Border Grid.Row="3"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="20,15">
+            <StackPanel Spacing="15">
+                <TextBlock Text="{Binding AudioTimeDisplay}"
+                           HorizontalAlignment="Center"
+                           Foreground="White"
+                           FontFamily="Consolas"
+                           FontSize="16"/>
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="10">
+                    <Button Content="▶ Play"
+                            Command="{Binding PlayCommand}"
+                            Width="100"
+                            Height="40"
+                            FontSize="14"
+                            Background="#2E7D32"
+                            Foreground="White"
+                            BorderBrush="#1B5E20"/>
+
+                    <Button Content="⏸ Pause"
+                            Command="{Binding PauseCommand}"
+                            Width="100"
+                            Height="40"
+                            FontSize="14"
+                            Background="#2A2A2A"
+                            Foreground="White"
+                            BorderBrush="#444444"/>
+
+                    <Button Content="⏹ Stop"
+                            Command="{Binding StopCommand}"
+                            Width="100"
+                            Height="40"
+                            FontSize="14"
+                            Background="#C62828"
+                            Foreground="White"
+                            BorderBrush="#8B0000"/>
+                </StackPanel>
+
+                <Button Content="🎯 TAP (or press Spacebar)"
+                        Command="{Binding TapTimingCommand}"
+                        HorizontalAlignment="Center"
+                        Width="300"
+                        Height="50"
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Background="#0078D4"
+                        Foreground="White"
+                        BorderBrush="#005A9E"/>
+
+                <TextBlock Text="{Binding NextVerseNumber, StringFormat='Next: Verse {0}'}"
+                           HorizontalAlignment="Center"
+                           Foreground="#888888"
+                           FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom Actions -->
+        <Border Grid.Row="4"
+                Background="#0D0D0D"
+                Padding="20,15">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           Foreground="#CCCCCC"
+                           FontSize="12"/>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            Margin="0,0,10,0">
+                    <Button Content="Clear All"
+                            Command="{Binding ClearAllTimingsCommand}"
+                            Background="#8B0000"
+                            Foreground="White"
+                            Padding="15,8"/>
+                    <Button Content="Cancel"
+                            Click="Cancel_Click"
+                            Background="#2A2A2A"
+                            Foreground="White"
+                            BorderBrush="#444444"
+                            Padding="15,8"/>
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        Content="Save Timings"
+                        Click="SaveTimings_Click"
+                        Background="#2E7D32"
+                        Foreground="White"
+                        BorderBrush="#1B5E20"
+                        Padding="20,8"
+                        FontWeight="Bold"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

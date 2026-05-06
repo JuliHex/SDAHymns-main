@@ -1,0 +1,202 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="SDAHymns.Desktop.Views.ShortcutsWindow"
+        x:DataType="vm:ShortcutsWindowViewModel"
+        Title="Keyboard Shortcuts"
+        Width="800" Height="600"
+        Background="#0D0D0D"
+        Icon="/Assets/avalonia-logo.ico"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <vm:ShortcutsWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,0,0,1"
+                Padding="20">
+            <StackPanel>
+                <TextBlock Text="Keyboard Shortcuts"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+                <TextBlock Text="Click any shortcut to rebind it, then press your desired key combination"
+                           FontSize="13"
+                           Foreground="#888888"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Swap Warning Banner -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding SwapMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                Background="#FFA726"
+                BorderBrush="#F57C00"
+                BorderThickness="0,0,0,1"
+                Padding="15,10">
+            <StackPanel>
+                <TextBlock Text="⚠ Shortcut Conflicts Detected"
+                           FontWeight="Bold"
+                           FontSize="14"
+                           Foreground="#1A1A1A"
+                           Margin="0,0,0,5"/>
+                <TextBlock Text="{Binding SwapMessage}"
+                           FontSize="12"
+                           Foreground="#1A1A1A"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Shortcuts List -->
+        <ScrollViewer Grid.Row="2">
+            <ItemsControl ItemsSource="{Binding ShortcutGroups}"
+                         Margin="20">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,30">
+                            <!-- Category Header -->
+                            <TextBlock Text="{Binding Category}"
+                                      FontSize="18"
+                                      FontWeight="SemiBold"
+                                      Foreground="#0078D4"
+                                      Margin="0,0,0,10"/>
+
+                            <!-- Shortcuts Table -->
+                            <Border Background="#1A1A1A"
+                                   BorderBrush="#333333"
+                                   BorderThickness="1"
+                                   CornerRadius="4">
+                                <ItemsControl ItemsSource="{Binding Shortcuts}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#333333"
+                                                   BorderThickness="0,0,0,1"
+                                                   Padding="15,10">
+                                                <Grid ColumnDefinitions="230,*">
+                                                    <!-- Shortcut Key Button -->
+                                                    <Button Grid.Column="0"
+                                                           Click="ShortcutButton_Click"
+                                                           HorizontalAlignment="Stretch"
+                                                           HorizontalContentAlignment="Center"
+                                                           BorderThickness="1"
+                                                           CornerRadius="4"
+                                                           Padding="15,8"
+                                                           Width="230">
+                                                        <Button.Styles>
+                                                            <Style Selector="Button">
+                                                                <Setter Property="Background" Value="#2A2A2A"/>
+                                                                <Setter Property="BorderBrush" Value="#444444"/>
+                                                            </Style>
+                                                            <Style Selector="Button[IsPressed=True]">
+                                                                <Setter Property="Background" Value="#0078D4"/>
+                                                                <Setter Property="BorderBrush" Value="#005A9E"/>
+                                                            </Style>
+                                                            <Style Selector="Button:pointerover">
+                                                                <Setter Property="Background" Value="#333333"/>
+                                                                <Setter Property="BorderBrush" Value="#555555"/>
+                                                            </Style>
+                                                        </Button.Styles>
+                                                        <Grid>
+                                                            <!-- Normal state -->
+                                                            <TextBlock Text="{Binding Shortcut}"
+                                                                      IsVisible="{Binding !IsListening}"
+                                                                      FontFamily="Consolas, Courier New, monospace"
+                                                                      FontSize="14"
+                                                                      Foreground="#4CAF50"
+                                                                      FontWeight="Bold"
+                                                                      TextAlignment="Center"
+                                                                      HorizontalAlignment="Center"/>
+                                                            <!-- Listening state -->
+                                                            <TextBlock Text="⌨ Press keys..."
+                                                                      IsVisible="{Binding IsListening}"
+                                                                      FontFamily="Consolas, Courier New, monospace"
+                                                                      FontSize="14"
+                                                                      Foreground="White"
+                                                                      FontWeight="Bold"
+                                                                      TextAlignment="Center"
+                                                                      HorizontalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Button>
+
+                                                    <!-- Action Description -->
+                                                    <StackPanel Grid.Column="1"
+                                                               Margin="20,0,0,0">
+                                                        <TextBlock Text="{Binding ActionName}"
+                                                                  FontSize="14"
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="White"/>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                  FontSize="12"
+                                                                  Foreground="#888888"
+                                                                  TextWrapping="Wrap"
+                                                                  Margin="0,3,0,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="3"
+                Background="#1A1A1A"
+                BorderBrush="#333333"
+                BorderThickness="0,1,0,0"
+                Padding="20">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0"
+                           Orientation="Horizontal"
+                           Spacing="10">
+                    <Button Content="Save Changes"
+                            Command="{Binding SaveChangesCommand}"
+                            IsVisible="{Binding HasChanges}"
+                            Width="140"
+                            Height="35"
+                            Background="#2E7D32"
+                            Foreground="White"
+                            BorderBrush="#1B5E20"/>
+
+                    <Button Content="Cancel"
+                            Command="{Binding CancelChangesCommand}"
+                            IsVisible="{Binding HasChanges}"
+                            Width="100"
+                            Height="35"
+                            Background="#D32F2F"
+                            Foreground="White"
+                            BorderBrush="#B71C1C"/>
+
+                    <Button Content="Reset to Defaults"
+                            Command="{Binding ResetToDefaultsCommand}"
+                            Width="150"
+                            Height="35"
+                            Background="#2A2A2A"
+                            Foreground="White"
+                            BorderBrush="#444444"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="Close"
+                        Click="CloseButton_Click"
+                        Width="100"
+                        Height="35"
+                        Background="#2A2A2A"
+                        Foreground="White"
+                        BorderBrush="#444444"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

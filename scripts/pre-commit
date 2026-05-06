@@ -1,0 +1,32 @@
+#!/bin/sh
+# Pre-commit hook for SDAHymns
+# This script runs before each commit to ensure code quality
+
+echo "Running pre-commit checks..."
+
+# Run dotnet build (includes type checking)
+echo "Building solution (type check)..."
+dotnet build --configuration Debug --no-restore
+if [ $? -ne 0 ]; then
+    echo "❌ Build failed! Commit aborted."
+    exit 1
+fi
+
+# Run tests
+echo "Running tests..."
+dotnet test --configuration Debug --no-build --verbosity quiet
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed! Commit aborted."
+    exit 1
+fi
+
+# Check code formatting (optional - can be commented out if too strict)
+# echo "Checking code formatting..."
+# dotnet format --verify-no-changes --verbosity quiet
+# if [ $? -ne 0 ]; then
+#     echo "⚠️  Code formatting issues found. Run 'dotnet format' to fix."
+#     echo "   (Continuing with commit...)"
+# fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

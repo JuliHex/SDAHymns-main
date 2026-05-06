@@ -1,0 +1,118 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="SDAHymns.Desktop.Views.DisplayWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="SDA Hymns - Display"
+        Background="Black"
+        WindowState="Normal"
+        CanResize="True">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <!-- Clean projection display - just the content -->
+    <Viewbox Stretch="Uniform">
+        <Border x:Name="RootBorder"
+                Width="{Binding DisplayWidth}"
+                Height="{Binding DisplayHeight}"
+                Background="Black">
+            <Grid>
+                <!-- Main Content -->
+                <Grid RowDefinitions="Auto,*">
+                    <!-- Hymn Title -->
+                    <Border Grid.Row="0"
+                            x:Name="TitleBorder"
+                            Background="Black"
+                            Padding="40,30"
+                            IsVisible="False">
+                        <TextBlock x:Name="HymnTitleText"
+                                   Text="{Binding HymnTitle}"
+                                   FontSize="36"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- Verse Content -->
+                    <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly">
+                        <Grid>
+                            <!-- Normal Verse Content -->
+                            <StackPanel x:Name="ContentPanel"
+                                       IsVisible="{Binding !IsTitleSlide}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Width="1200"
+                                       Margin="100,60,100,60">
+                                <!-- Verse Label (e.g., "1.", "Refren") -->
+                                <TextBlock x:Name="VerseLabelText"
+                                          Text="{Binding CurrentVerseLabel}"
+                                          FontSize="32"
+                                          FontWeight="SemiBold"
+                                          HorizontalAlignment="Left"
+                                          Margin="0,0,0,40"
+                                          Foreground="#CCCCCC"/>
+
+                                <!-- Verse Content -->
+                                <TextBlock x:Name="VerseContentText"
+                                          Text="{Binding CurrentVerseContent}"
+                                          FontSize="56"
+                                          TextWrapping="Wrap"
+                                          TextAlignment="Left"
+                                          LineHeight="75"
+                                          Foreground="White"/>
+                            </StackPanel>
+
+                            <!-- Title Slide Content -->
+                            <StackPanel x:Name="TitleSlidePanel"
+                                       IsVisible="{Binding IsTitleSlide}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Width="1200"
+                                       Margin="100,60,100,60">
+                                <TextBlock TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center">
+                                    <Run Text="{Binding HymnNumber}" Foreground="#FFD700" FontSize="72" FontWeight="Bold"/>
+                                    <Run Text=". " Foreground="#FFD700" FontSize="72" FontWeight="Bold"/>
+                                    <Run Text="{Binding HymnTitleOnly}" Foreground="White" FontSize="72" FontWeight="Bold"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+
+                <!-- Auto-Play Countdown Overlay -->
+                <Border Background="#CC000000"
+                        IsVisible="{Binding IsCountdownActive}">
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Spacing="30">
+                        <TextBlock Text="Starting audio in..."
+                                   FontSize="48"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="White"/>
+                        <TextBlock Text="{Binding CountdownSeconds}"
+                                   FontSize="120"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="#4CAF50"/>
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCountdownCommand}"
+                                HorizontalAlignment="Center"
+                                FontSize="24"
+                                Padding="40,15"
+                                Background="#C62828"
+                                Foreground="White"
+                                BorderBrush="#8B0000"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Viewbox>
+</Window>

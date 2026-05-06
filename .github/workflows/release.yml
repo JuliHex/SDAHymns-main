@@ -1,0 +1,518 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'How to bump the version?'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - manual
+      manual_version:
+        description: 'Manual version (required if bump_type is manual)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'src/SDAHymns.Desktop/SDAHymns.Desktop.csproj'
+  APP_NAME: 'SDAHymns'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Calculate Next Version
+        id: get_version
+        run: |
+          REF="${{ github.ref }}"
+          EVENT="${{ github.event_name }}"
+          
+          # Initialize variables
+          CREATE_TAG="false"
+          VERSION=""
+          PREVIOUS_TAG=""
+          
+          # Check if triggered by a Tag Push
+          if [[ "$REF" == "refs/tags/v"* ]]; then
+            echo "Triggered by tag push."
+            VERSION=${REF#refs/tags/v}
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            CREATE_TAG="false" # Tag already exists
+            
+          else
+            # Triggered by Branch Push (main) or Manual Dispatch
+            echo "Triggered by $EVENT on $REF"
+            
+            BUMP_TYPE="none"
+            
+            if [ "$EVENT" = "workflow_dispatch" ]; then
+              BUMP_TYPE="${{ inputs.bump_type }}"
+            elif [ "$EVENT" = "push" ]; then
+              # Use heredoc to safely handle multiline commit messages
+              COMMIT_MSG=$(cat << 'EOF'
+          ${{ github.event.head_commit.message }}
+          EOF
+          )
+              echo "Commit message: $COMMIT_MSG"
+
+              if [[ "$COMMIT_MSG" == *"[major]"* ]]; then
+                BUMP_TYPE="major"
+              elif [[ "$COMMIT_MSG" == *"[minor]"* ]]; then
+                BUMP_TYPE="minor"
+              elif [[ "$COMMIT_MSG" == *"[patch]"* ]]; then
+                BUMP_TYPE="patch"
+              fi
+            fi
+            
+            echo "Bump Type: $BUMP_TYPE"
+            
+            if [ "$BUMP_TYPE" != "none" ]; then
+              git fetch --tags
+              LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+              PREVIOUS_TAG=$LATEST_TAG
+              echo "Latest tag: $LATEST_TAG"
+              
+              if [ "$BUMP_TYPE" = "manual" ]; then
+                VERSION="${{ inputs.manual_version }}"
+              else
+                # Remove 'v' prefix
+                CLEAN_TAG=${LATEST_TAG#v}
+                # Split into array
+                IFS='.' read -r major minor patch <<< "$CLEAN_TAG"
+                
+                # Default to 0 if missing
+                major=${major:-0}
+                minor=${minor:-0}
+                patch=${patch:-0}
+                
+                if [ "$BUMP_TYPE" = "major" ]; then
+                  major=$((major + 1))
+                  minor=0
+                  patch=0
+                elif [ "$BUMP_TYPE" = "minor" ]; then
+                  minor=$((minor + 1))
+                  patch=0
+                else
+                  # patch
+                  patch=$((patch + 1))
+                fi
+                VERSION="$major.$minor.$patch"
+              fi
+              
+              CREATE_TAG="true"
+              echo "Calculated next version: $VERSION"
+            else
+              echo "No version bump detected. Skipping release creation."
+            fi
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "create_tag=$CREATE_TAG" >> $GITHUB_OUTPUT
+          echo "Final Version: $VERSION"
+
+      - name: Create and Push Tag
+        if: steps.get_version.outputs.create_tag == 'true' && steps.get_version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="v$VERSION"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          echo "Creating tag $TAG"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Generate release notes
+        id: changelog
+        if: steps.get_version.outputs.version != ''
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          PREVIOUS_TAG="${{ steps.get_version.outputs.previous_tag }}"
+
+          # Get commits since last tag
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD)
+          fi
+
+                REPO="${{ github.repository }}"
+                BASE_URL="https://github.com/$REPO/releases/download/v$VERSION"
+                
+                # Generate Markdown Body
+                echo "## 🚀 Download SDAHymns v$VERSION" > release_body.md
+                echo "" >> release_body.md
+                echo "| Platform                  | Download                                                                         | Type                    |" >> release_body.md
+                echo "| :--- | :----------------- | :----------------------------------------------------------------------------------------------------------|" >> release_body.md
+                echo "| **Windows**               | [**Download Installer (Recommended)**]($BASE_URL/SDAHymns-Windows-Setup.exe)             | Auto-updating Installer |" >> release_body.md
+                echo "| **Windows**               | [Portable Zip]($BASE_URL/SDAHymns-v$VERSION-windows-x64.zip)                     | Manual                  |" >> release_body.md
+                echo "| **macOS (Apple Silicon)** | [**Download Installer (Recommended)**]($BASE_URL/SDAHymns-Setup-arm64.pkg)       | Auto-updating Installer |" >> release_body.md
+                echo "| **macOS (Apple Silicon)** | [Portable Zip]($BASE_URL/SDAHymns-v$VERSION-macos-arm64.zip)                     | Manual                  |" >> release_body.md
+                echo "| **macOS (Intel)**         | [**Download Installer (Recommended)**]($BASE_URL/SDAHymns-Setup-x64.pkg)         | Auto-updating Installer |" >> release_body.md
+                echo "| **macOS (Intel)**         | [Portable Zip]($BASE_URL/SDAHymns-v$VERSION-macos-x64.zip)                       | Manual                  |" >> release_body.md
+                echo "| **Linux**                 | [**Download AppImage  (Recommended)**]($BASE_URL/SDAHymns-x64.AppImage)          | Auto-updating Installer |" >> release_body.md
+                echo "| **Linux**                 | [Portable Tarball]($BASE_URL/SDAHymns-v$VERSION-linux-x64.tar.gz)                | Manual                  |" >> release_body.md
+                echo "" >> release_body.md
+                echo "---" >> release_body.md
+                echo "### 📝 What's New" >> release_body.md
+                echo "$COMMITS" >> release_body.md
+
+      - name: Create Release
+        id: create_release
+        if: steps.get_version.outputs.version != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: SDAHymns v${{ steps.get_version.outputs.version }}
+          body_path: release_body.md
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    name: Build Windows
+    needs: create-release
+    if: needs.create-release.outputs.version != ''
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Windows x64
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=${{ needs.create-release.outputs.version }} `
+            -o ./publish/win-x64
+
+      - name: Copy Resources to publish folder
+        run: |
+          New-Item -ItemType Directory -Force -Path ./publish/win-x64/Resources
+          Copy-Item -Path ./Resources/hymns.db -Destination ./publish/win-x64/Resources/ -Force
+
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+
+      - name: Create Velopack Release
+        run: |
+          vpk pack --packId ${{ env.APP_NAME }} `
+            --packVersion ${{ needs.create-release.outputs.version }} `
+            --packDir ./publish/win-x64 `
+            --mainExe SDAHymns.Desktop.exe `
+            --outputDir ./Releases
+
+      - name: Upload Velopack RELEASES file
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./Releases/RELEASES
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Velopack JSON Release Index
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./Releases/releases.win.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and Rename Velopack Setup
+        shell: pwsh
+        run: |
+          $setupFile = Get-ChildItem -Path ./Releases -Filter "*Setup.exe" | Select-Object -First 1
+          if ($setupFile) {
+            $renamedFile = Join-Path (Split-Path $setupFile.FullName) "SDAHymns-Windows-Setup.exe"
+            Move-Item -Path $setupFile.FullName -Destination $renamedFile -Force
+            echo "SETUP_FILE=$renamedFile" >> $env:GITHUB_ENV
+          }
+
+      - name: Upload Velopack Setup.exe
+        uses: softprops/action-gh-release@v2
+        if: env.SETUP_FILE != ''
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ${{ env.SETUP_FILE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and Upload Velopack nupkg
+        shell: pwsh
+        run: |
+          $nupkgFile = Get-ChildItem -Path ./Releases -Filter "*.nupkg" | Select-Object -First 1
+          if ($nupkgFile) {
+            echo "NUPKG_FILE=$($nupkgFile.FullName)" >> $env:GITHUB_ENV
+            echo "NUPKG_NAME=$($nupkgFile.Name)" >> $env:GITHUB_ENV
+          }
+
+      - name: Upload Velopack nupkg
+        uses: softprops/action-gh-release@v2
+        if: env.NUPKG_FILE != ''
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ${{ env.NUPKG_FILE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Windows ZIP (fallback)
+        run: |
+          Compress-Archive -Path ./publish/win-x64/* -DestinationPath ./${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-windows-x64.zip
+
+      - name: Upload Windows ZIP Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-windows-x64.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    name: Build macOS
+    needs: create-release
+    if: needs.create-release.outputs.version != ''
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build macOS ARM64 (Apple Silicon)
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r osx-arm64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:Version=${{ needs.create-release.outputs.version }} \
+            -o ./publish/osx-arm64
+
+      - name: Build macOS x64 (Intel)
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r osx-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:Version=${{ needs.create-release.outputs.version }} \
+            -o ./publish/osx-x64
+
+      - name: Copy Resources to publish folders
+        run: |
+          mkdir -p ./publish/osx-arm64/Resources
+          mkdir -p ./publish/osx-x64/Resources
+          cp ./Resources/hymns.db ./publish/osx-arm64/Resources/
+          cp ./Resources/hymns.db ./publish/osx-x64/Resources/
+
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+
+      - name: Create Velopack Release (ARM64)
+        run: |
+          vpk pack --packId ${{ env.APP_NAME }} \
+            --packVersion ${{ needs.create-release.outputs.version }} \
+            --packDir ./publish/osx-arm64 \
+            --mainExe SDAHymns.Desktop \
+            --outputDir ./Releases/arm64
+
+      - name: Create Velopack Release (x64)
+        run: |
+          vpk pack --packId ${{ env.APP_NAME }} \
+            --packVersion ${{ needs.create-release.outputs.version }} \
+            --packDir ./publish/osx-x64 \
+            --mainExe SDAHymns.Desktop \
+            --outputDir ./Releases/x64
+
+      - name: Merge Velopack Release Indices
+        run: |
+          mkdir -p ./Releases
+          # Merge the two arrays from the JSON files into one
+          cat ./Releases/arm64/releases.osx.json ./Releases/x64/releases.osx.json | jq -s 'add' > ./Releases/releases.osx.json
+          
+          # verify content
+          echo "Merged releases.osx.json content:"
+          cat ./Releases/releases.osx.json
+
+      - name: Upload Velopack JSON Release Index
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./Releases/releases.osx.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and Upload Velopack Setup (ARM64)
+        run: |
+          PKG_FILE=$(find ./Releases/arm64 -name "*.pkg" | head -n 1)
+          if [ -n "$PKG_FILE" ]; then
+            echo "ARM64_PKG=$PKG_FILE" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Velopack Setup (ARM64)
+        if: env.ARM64_PKG != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ${{ env.ARM64_PKG }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and Upload Velopack Setup (x64)
+        run: |
+          PKG_FILE=$(find ./Releases/x64 -name "*.pkg" | head -n 1)
+          if [ -n "$PKG_FILE" ]; then
+            echo "X64_PKG=$PKG_FILE" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Velopack Setup (x64)
+        if: env.X64_PKG != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ${{ env.X64_PKG }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create macOS ARM64 ZIP
+        run: |
+          cd ./publish/osx-arm64
+          zip -r ../../${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-macos-arm64.zip .
+          cd ../..
+
+      - name: Create macOS x64 ZIP
+        run: |
+          cd ./publish/osx-x64
+          zip -r ../../${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-macos-x64.zip .
+          cd ../..
+
+      - name: Upload macOS ARM64 Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-macos-arm64.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS x64 Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-macos-x64.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    name: Build Linux
+    needs: create-release
+    if: needs.create-release.outputs.version != ''
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Linux x64
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:Version=${{ needs.create-release.outputs.version }} \
+            -o ./publish/linux-x64
+
+      - name: Copy Resources to publish folder
+        run: |
+          mkdir -p ./publish/linux-x64/Resources
+          cp ./Resources/hymns.db ./publish/linux-x64/Resources/
+
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+
+      - name: Create Velopack Release
+        run: |
+          vpk pack --packId ${{ env.APP_NAME }} \
+            --packVersion ${{ needs.create-release.outputs.version }} \
+            --packDir ./publish/linux-x64 \
+            --mainExe SDAHymns.Desktop \
+            --outputDir ./Releases
+
+      - name: Upload Velopack JSON Release Index
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./Releases/releases.linux.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and Upload Velopack AppImage
+        run: |
+          APPIMAGE=$(find ./Releases -name "*.AppImage" | head -n 1)
+          if [ -n "$APPIMAGE" ]; then
+            echo "APPIMAGE_FILE=$APPIMAGE" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Velopack AppImage
+        if: env.APPIMAGE_FILE != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ${{ env.APPIMAGE_FILE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Linux ZIP
+        run: |
+          cd ./publish/linux-x64
+          tar -czf ../../${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-linux-x64.tar.gz .
+          cd ../..
+
+      - name: Upload Linux Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./${{ env.APP_NAME }}-v${{ needs.create-release.outputs.version }}-linux-x64.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,322 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
+        x:Class="SDAHymns.Desktop.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Title="Settings"
+        Width="700" Height="600"
+        Background="#1A1A1A">
+
+    <Design.DataContext>
+        <vm:SettingsWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="*,Auto">
+        <!-- Tabbed Content -->
+        <TabControl Grid.Row="0" Background="#0D0D0D">
+            <!-- General Tab -->
+            <TabItem Header="General">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="15">
+                        <TextBlock Text="General Settings"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+
+                        <!-- General Settings Form -->
+                        <StackPanel Spacing="15" Margin="0,15,0,0">
+                            <!-- Language Selection -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Application Language:"
+                                           Foreground="White"
+                                           FontSize="14"/>
+                                <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                                          SelectedItem="{Binding SelectedLanguage}"
+                                          Background="#2A2A2A"
+                                          Foreground="White"
+                                          BorderBrush="#444444"
+                                          HorizontalAlignment="Left"
+                                          Width="200"/>
+                            </StackPanel>
+
+                            <!-- Theme Selection -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Application Theme:"
+                                           Foreground="White"
+                                           FontSize="14"/>
+                                <ComboBox ItemsSource="{Binding AvailableThemes}"
+                                          SelectedItem="{Binding SelectedTheme}"
+                                          Background="#2A2A2A"
+                                          Foreground="White"
+                                          BorderBrush="#444444"
+                                          HorizontalAlignment="Left"
+                                          Width="200"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Audio Tab -->
+            <TabItem Header="Audio">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="15">
+                        <TextBlock Text="Audio Library Settings"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+
+                        <!-- Library Path -->
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Library Location:"
+                                       Foreground="White"
+                                       FontSize="14"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding AudioLibraryPath}"
+                                         Background="#2A2A2A"
+                                         Foreground="White"
+                                         BorderBrush="#444444"
+                                         Margin="0,0,10,0"/>
+                                <Button Grid.Column="1"
+                                        Content="📁 Browse"
+                                        Click="BrowseLibraryPath_Click"
+                                        Background="#2A2A2A"
+                                        Foreground="White"
+                                        BorderBrush="#444444"
+                                        Padding="15,8"/>
+                            </Grid>
+                            <TextBlock Text="{Binding FormattedLibrarySize, StringFormat='Total Size: {0}'}"
+                                       Foreground="#888888"
+                                       FontSize="12"/>
+                        </StackPanel>
+
+                        <!-- Installed Packages -->
+                        <StackPanel Spacing="5" Margin="0,15,0,0">
+                            <TextBlock Text="Installed Audio Packs:"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+
+                            <Border Background="#0D0D0D"
+                                    BorderBrush="#333333"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    MaxHeight="200">
+                                <ListBox ItemsSource="{Binding InstalledPackages}"
+                                         Background="Transparent"
+                                         BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10"
+                                                    BorderBrush="#333333"
+                                                    BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="✅"
+                                                               FontSize="16"
+                                                               Margin="0,0,10,0"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   Foreground="White"
+                                                                   FontWeight="SemiBold"/>
+                                                        <TextBlock Foreground="#888888" FontSize="12">
+                                                            <Run Text="{Binding FileCount}"/>
+                                                            <Run Text="files •"/>
+                                                            <Run Text="{Binding TotalSize}"/>
+                                                            <Run Text="bytes"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2"
+                                                            Content="Verify"
+                                                            Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).VerifyCategoryCommand}"
+                                                            CommandParameter="{Binding Category}"
+                                                            Background="#2A2A2A"
+                                                            Foreground="White"
+                                                            Padding="8,4"
+                                                            Margin="5,0"/>
+                                                    <Button Grid.Column="3"
+                                                            Content="Update"
+                                                            Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).DownloadCategoryCommand}"
+                                                            CommandParameter="{Binding Category}"
+                                                            Background="#2A2A2A"
+                                                            Foreground="White"
+                                                            Padding="8,4"
+                                                            Margin="5,0"/>
+                                                    <Button Grid.Column="4"
+                                                            Content="Delete"
+                                                            Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).DeleteCategoryCommand}"
+                                                            CommandParameter="{Binding Category}"
+                                                            Background="#8B0000"
+                                                            Foreground="White"
+                                                            Padding="8,4"
+                                                            Margin="5,0"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Download Progress -->
+                        <StackPanel Spacing="5"
+                                    IsVisible="{Binding IsDownloading}"
+                                    Margin="0,10,0,0">
+                            <TextBlock Text="{Binding DownloadStatusText}"
+                                       Foreground="White"
+                                       FontSize="12"/>
+                            <ProgressBar Value="{Binding DownloadProgress}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Height="20"/>
+                        </StackPanel>
+
+                        <!-- Playback Settings -->
+                        <StackPanel Spacing="10" Margin="0,15,0,0">
+                            <TextBlock Text="Playback Settings:"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Auto-play Delay (seconds):"
+                                           Foreground="White"
+                                           FontSize="12"/>
+                                <NumericUpDown Value="{Binding AutoPlayDelay}"
+                                               Minimum="1"
+                                               Maximum="30"
+                                               Background="#2A2A2A"
+                                               Foreground="White"
+                                               BorderBrush="#444444"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="5">
+                                <TextBlock Foreground="White" FontSize="12">
+                                    <Run Text="Default Volume:"/>
+                                    <Run Text="{Binding GlobalVolume, StringFormat='{}{0:0}%'}"/>
+                                </TextBlock>
+                                <Slider Value="{Binding GlobalVolume}"
+                                        Minimum="0"
+                                        Maximum="100"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Audio Output Device:"
+                                           Foreground="White"
+                                           FontSize="12"/>
+                                <ComboBox ItemsSource="{Binding AvailableAudioDevices}"
+                                          SelectedItem="{Binding SelectedAudioDevice}"
+                                          Background="#2A2A2A"
+                                          Foreground="White"
+                                          BorderBrush="#444444">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DeviceName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <Button Content="Scan Library Health"
+                                    Command="{Binding ScanLibraryHealthCommand}"
+                                    Background="#2A2A2A"
+                                    Foreground="White"
+                                    BorderBrush="#444444"
+                                    Padding="15,8"/>
+                            <Button Content="Migrate Library"
+                                    Click="MigrateLibrary_Click"
+                                    Background="#2A2A2A"
+                                    Foreground="White"
+                                    BorderBrush="#444444"
+                                    Padding="15,8"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Display Tab -->
+            <TabItem Header="Display">
+                <ScrollViewer>
+                    <StackPanel Margin="20" Spacing="15">
+                        <TextBlock Text="Display Settings"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+
+                        <!-- Display Settings Form -->
+                        <StackPanel Spacing="15" Margin="0,15,0,0">
+                            <!-- Aspect Ratio -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Default Aspect Ratio:"
+                                           Foreground="White"
+                                           FontSize="14"/>
+                                <StackPanel Orientation="Horizontal" Spacing="20">
+                                    <RadioButton Content="4:3 (Standard)"
+                                                 IsChecked="{Binding IsAspectRatio43}"
+                                                 Foreground="White"
+                                                 GroupName="AspectRatio"/>
+                                    <RadioButton Content="16:9 (Widescreen)"
+                                                 IsChecked="{Binding !IsAspectRatio43}"
+                                                 Foreground="White"
+                                                 GroupName="AspectRatio"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Display Profile -->
+                            <StackPanel Spacing="5" Margin="0,10,0,0">
+                                <TextBlock Text="Default Display Profile:"
+                                           Foreground="White"
+                                           FontSize="14"/>
+                                <ComboBox ItemsSource="{Binding AvailableDisplayProfiles}"
+                                          SelectedItem="{Binding ActiveDisplayProfile}"
+                                          Background="#2A2A2A"
+                                          Foreground="White"
+                                          BorderBrush="#444444"
+                                          HorizontalAlignment="Left"
+                                          Width="300">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="This profile will be applied automatically when the presentation starts."
+                                           Foreground="#888888"
+                                           FontSize="12"
+                                           Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="1"
+                Background="#0D0D0D"
+                BorderBrush="#333333"
+                BorderThickness="0,1,0,0"
+                Padding="15,10">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           Foreground="#888888"
+                           FontSize="12"/>
+                <Button Grid.Column="1"
+                        Content="Save Settings"
+                        Command="{Binding SaveSettingsCommand}"
+                        Background="#0078D4"
+                        Foreground="White"
+                        BorderBrush="#005A9E"
+                        Padding="20,8"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

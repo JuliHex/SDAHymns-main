@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(git checkout:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet tool install:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(sqlite3:*)",
+      "Bash(dotnet script:*)",
+      "Bash(shuf:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh api:*)",
+      "Bash(gh issue view:*)",
+      "Bash(taskkill:*)",
+      "Bash(gh run view:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue edit:*)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
