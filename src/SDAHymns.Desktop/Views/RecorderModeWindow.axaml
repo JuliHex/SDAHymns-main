@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
         x:Class="SDAHymns.Desktop.Views.RecorderModeWindow"
         x:DataType="vm:RecorderModeViewModel"
-        Title="Timing Recorder"
+        Title="{DynamicResource Recorder.Title}"
         Width="600" Height="500"
         Background="#1A1A1A">
 
@@ -32,17 +32,17 @@
                 Background="#1A1A1A"
                 Padding="20,15">
             <StackPanel Spacing="8">
-                <TextBlock Text="Recording Instructions:"
+                <TextBlock Text="{DynamicResource Recorder.Instructions}"
                            FontSize="14"
                            FontWeight="SemiBold"
                            Foreground="White"/>
                 <TextBlock TextWrapping="Wrap"
                            Foreground="#CCCCCC"
                            FontSize="12">
-                    1. Press Play to start the audio<LineBreak/>
-                    2. Press TAP button or Spacebar at the start of each verse<LineBreak/>
-                    3. Timings will be recorded automatically<LineBreak/>
-                    4. Press Stop when done, then Save Timings
+                    <Run Text="{DynamicResource Recorder.Step1}"/><LineBreak/>
+                    <Run Text="{DynamicResource Recorder.Step2}"/><LineBreak/>
+                    <Run Text="{DynamicResource Recorder.Step3}"/><LineBreak/>
+                    <Run Text="{DynamicResource Recorder.Step4}"/>
                 </TextBlock>
             </StackPanel>
         </Border>
@@ -54,7 +54,7 @@
                 BorderThickness="0,1,0,1"
                 Padding="20">
             <StackPanel Spacing="10">
-                <TextBlock Text="Recorded Timings:"
+                <TextBlock Text="{DynamicResource Recorder.RecordedTimings}"
                            FontSize="14"
                            FontWeight="SemiBold"
                            Foreground="White"/>
@@ -73,10 +73,14 @@
                                             Padding="10">
                                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                                             <TextBlock Grid.Column="0"
-                                                       Text="{Binding VerseNumber, StringFormat='Verse {0}:'}"
                                                        Foreground="White"
                                                        FontWeight="SemiBold"
-                                                       Width="80"/>
+                                                       Width="100">
+                                                <Run Text="{DynamicResource Recorder.VersePrefix}"/>
+                                                <Run Text=" "/>
+                                                <Run Text="{Binding VerseNumber}"/>
+                                                <Run Text=":"/>
+                                            </TextBlock>
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding DisplayTime}"
                                                        Foreground="#CCCCCC"
@@ -103,9 +107,14 @@
                     </ScrollViewer>
                 </Border>
 
-                <TextBlock Text="{Binding RecordedTimings.Count, StringFormat='Total: {0} timings'}"
-                           Foreground="#888888"
-                           FontSize="12"/>
+                <TextBlock Foreground="#888888"
+                           FontSize="12">
+                    <Run Text="{DynamicResource Recorder.TotalPrefix}"/>
+                    <Run Text=" "/>
+                    <Run Text="{Binding RecordedTimings.Count}"/>
+                    <Run Text=" "/>
+                    <Run Text="{DynamicResource Recorder.TimingsCount}"/>
+                </TextBlock>
             </StackPanel>
         </Border>
 
@@ -125,36 +134,47 @@
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"
                             Spacing="10">
-                    <Button Content="▶ Play"
-                            Command="{Binding PlayCommand}"
+                    <Button Command="{Binding PlayCommand}"
                             Width="100"
                             Height="40"
                             FontSize="14"
                             Background="#2E7D32"
                             Foreground="White"
-                            BorderBrush="#1B5E20"/>
+                            BorderBrush="#1B5E20">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="▶"/>
+                            <TextBlock Text="{DynamicResource Recorder.Play}"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Content="⏸ Pause"
-                            Command="{Binding PauseCommand}"
+                    <Button Command="{Binding PauseCommand}"
                             Width="100"
                             Height="40"
                             FontSize="14"
                             Background="#2A2A2A"
                             Foreground="White"
-                            BorderBrush="#444444"/>
+                            BorderBrush="#444444">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="⏸"/>
+                            <TextBlock Text="{DynamicResource Recorder.Pause}"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Content="⏹ Stop"
-                            Command="{Binding StopCommand}"
+                    <Button Command="{Binding StopCommand}"
                             Width="100"
                             Height="40"
                             FontSize="14"
                             Background="#C62828"
                             Foreground="White"
-                            BorderBrush="#8B0000"/>
+                            BorderBrush="#8B0000">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="⏹"/>
+                            <TextBlock Text="{DynamicResource Recorder.Stop}"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
-                <Button Content="🎯 TAP (or press Spacebar)"
-                        Command="{Binding TapTimingCommand}"
+                <Button Command="{Binding TapTimingCommand}"
                         HorizontalAlignment="Center"
                         Width="300"
                         Height="50"
@@ -162,12 +182,20 @@
                         FontWeight="Bold"
                         Background="#0078D4"
                         Foreground="White"
-                        BorderBrush="#005A9E"/>
+                        BorderBrush="#005A9E">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="🎯"/>
+                        <TextBlock Text="{DynamicResource Recorder.Tap}"/>
+                    </StackPanel>
+                </Button>
 
-                <TextBlock Text="{Binding NextVerseNumber, StringFormat='Next: Verse {0}'}"
-                           HorizontalAlignment="Center"
+                <TextBlock HorizontalAlignment="Center"
                            Foreground="#888888"
-                           FontSize="12"/>
+                           FontSize="12">
+                    <Run Text="{DynamicResource Recorder.NextPrefix}"/>
+                    <Run Text=" "/>
+                    <Run Text="{Binding NextVerseNumber}"/>
+                </TextBlock>
             </StackPanel>
         </Border>
 
@@ -186,12 +214,12 @@
                             Orientation="Horizontal"
                             Spacing="10"
                             Margin="0,0,10,0">
-                    <Button Content="Clear All"
+                    <Button Content="{DynamicResource Recorder.ClearAll}"
                             Command="{Binding ClearAllTimingsCommand}"
                             Background="#8B0000"
                             Foreground="White"
                             Padding="15,8"/>
-                    <Button Content="Cancel"
+                    <Button Content="{DynamicResource Text.Cancel}"
                             Click="Cancel_Click"
                             Background="#2A2A2A"
                             Foreground="White"
@@ -200,7 +228,7 @@
                 </StackPanel>
 
                 <Button Grid.Column="2"
-                        Content="Save Timings"
+                        Content="{DynamicResource Recorder.SaveTimings}"
                         Click="SaveTimings_Click"
                         Background="#2E7D32"
                         Foreground="White"

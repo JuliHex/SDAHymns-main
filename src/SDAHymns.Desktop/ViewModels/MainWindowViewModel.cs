@@ -2,7 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SDAHymns.Core.Data.Models;
 using SDAHymns.Core.Services;
+using SDAHymns.Desktop.Services;
 using Velopack;
+
+using SDAHymns.Desktop.Models;
 
 namespace SDAHymns.Desktop.ViewModels;
 
@@ -17,6 +20,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly HymnSynchronizer _synchronizer;
     private readonly ISettingsService _settingsService;
 
+    public event Action? RequestClose;
+    
     [ObservableProperty]
     private Hymn? _currentHymn;
 
@@ -37,7 +42,28 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private string _selectedCategory = "crestine";
 
     [ObservableProperty]
-    private string _statusMessage = "Enter a hymn number and click Load";
+    private LocalizedCategory? _selectedCategoryItem;
+
+    public List<LocalizedCategory> Categories { get; } = new()
+    {
+        new LocalizedCategory { Slug = "crestine", Name = LocalizationManager.Instance.GetString("Category.crestine", "Christian") },
+        new LocalizedCategory { Slug = "companioni", Name = LocalizationManager.Instance.GetString("Category.companioni", "Companions") },
+        new LocalizedCategory { Slug = "exploratori", Name = LocalizationManager.Instance.GetString("Category.exploratori", "Explorers") },
+        new LocalizedCategory { Slug = "licurici", Name = LocalizationManager.Instance.GetString("Category.licurici", "Little Stars") },
+        new LocalizedCategory { Slug = "tineret", Name = LocalizationManager.Instance.GetString("Category.tineret", "Youth") },
+        new LocalizedCategory { Slug = "diverse", Name = LocalizationManager.Instance.GetString("Category.diverse", "Miscellaneous") }
+    };
+
+    partial void OnSelectedCategoryItemChanged(LocalizedCategory? value)
+    {
+        if (value != null)
+        {
+            SelectedCategory = value.Slug;
+        }
+    }
+
+    [ObservableProperty]
+    private string _statusMessage = LocalizationManager.Instance.GetString("Status.Ready");
 
     [ObservableProperty]
     private bool _isAspectRatio43 = true;
@@ -103,7 +129,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private string _playPauseIcon = "▶";
 
     [ObservableProperty]
-    private string _playPauseTooltip = "Play";
+    private string _playPauseTooltip = LocalizationManager.Instance.GetString("Text.Play");
 
     [ObservableProperty]
     private bool _isCountdownActive = false;
@@ -133,6 +159,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _synchronizer.VerseChangeRequested += OnSynchronizerVerseChangeRequested;
 
         // Initialize search results and recent hymns
+        SelectedCategoryItem = Categories.FirstOrDefault(c => c.Slug == SelectedCategory);
         _ = InitializeAsync();
     }
 
@@ -140,6 +167,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
+            // Load Settings
+            IsAspectRatio43 = await _settingsService.GetIsAspectRatio43Async();
+
             // Load initial search results (all hymns in default category)
             await PerformSearchAsync();
 
@@ -151,7 +181,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Initialization error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -165,7 +195,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading profiles: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -174,6 +204,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (value != null)
         {
             _ = SetActiveProfileAsync(value);
+            OnPropertyChanged(nameof(CurrentVerseLabelColor));
         }
     }
 
@@ -182,27 +213,47 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         try
         {
             await _profileService.SetActiveProfileAsync(profile.Id);
-            StatusMessage = $"Active profile: {profile.Name}";
+            StatusMessage = $"Profil activ: {profile.Name}";
             // TODO: Notify display window to refresh with new profile
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error setting active profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
-    public string DisplayWindowButtonLabel => IsDisplayWindowOpen ? "Hide Display" : "Show Display";
+    public string DisplayWindowButtonLabel => IsDisplayWindowOpen ? "Ascunde Afișajul" : "Arată Afișajul";
 
     // Display dimensions based on aspect ratio
-    public double DisplayWidth => IsAspectRatio43 ? 800 : 1920;
-    public double DisplayHeight => IsAspectRatio43 ? 600 : 1080;
+    public double DisplayWidth => IsAspectRatio43 ? 1600 : 1920;
+    public double DisplayHeight => IsAspectRatio43 ? 1200 : 1080;
 
     public string AspectRatioLabel => IsAspectRatio43 ? "4:3" : "16:9";
 
-    public string VerseIndicator =>
-        Verses.Any()
-            ? $"Verse {CurrentVerseIndex + 1} of {Verses.Count}"
-            : "No verses loaded";
+    public string VerseIndicator
+    {
+        get
+        {
+            if (!Verses.Any()) return LocalizationManager.Instance.GetString("Text.NoVerses");
+            if (IsTitleSlide) return LocalizationManager.Instance.GetString("Text.Title");
+            
+            var currentLabel = CurrentVerseLabel;
+            if (currentLabel == LocalizationManager.Instance.GetString("Text.Chorus")) return LocalizationManager.Instance.GetString("Text.Chorus");
+            
+            // For numbered verses, show "Verse X of Y"
+            // Count total unique numbered verses
+            var totalNumbered = Verses.Where(v => int.TryParse(ExtractNumberPrefix(v.Content)?.TrimEnd('.') ?? v.Label?.TrimEnd('.'), out _)).Select(v => v.VerseNumber).Distinct().Count();
+            
+            // Find current verse number from the slide content or label
+            var currentLabelStr = ExtractNumberPrefix(Verses[CurrentVerseIndex].Content) ?? Verses[CurrentVerseIndex].Label;
+            if (int.TryParse(currentLabelStr?.TrimEnd('.'), out var num))
+            {
+                return string.Format(LocalizationManager.Instance.GetString("Text.VerseIndicator"), num, totalNumbered);
+            }
+            
+            return currentLabel ?? string.Empty;
+        }
+    }
 
     partial void OnIsAspectRatio43Changed(bool value)
     {
@@ -220,42 +271,151 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         OnPropertyChanged(nameof(CurrentVerseContent));
         OnPropertyChanged(nameof(CurrentVerseLabel));
+        OnPropertyChanged(nameof(CurrentVerseLabelColor));
+        OnPropertyChanged(nameof(NextVerseContent));
+        OnPropertyChanged(nameof(NextVerseLabel));
+        OnPropertyChanged(nameof(NextVerseLabelColor));
         OnPropertyChanged(nameof(CanGoNext));
         OnPropertyChanged(nameof(CanGoPrevious));
         OnPropertyChanged(nameof(VerseIndicator));
         OnPropertyChanged(nameof(IsTitleSlide));
+        OnPropertyChanged(nameof(IsNotTitleSlide));
+        OnPropertyChanged(nameof(IsChorus));
+        OnPropertyChanged(nameof(IsVerseNumber));
+        OnPropertyChanged(nameof(IsUnlabeledVerse));
+        OnPropertyChanged(nameof(IsNextChorus));
+        OnPropertyChanged(nameof(IsNextVerseNumber));
+        OnPropertyChanged(nameof(IsNextUnlabeledVerse));
+        OnPropertyChanged(nameof(IsNextTitleSlide));
+        OnPropertyChanged(nameof(IsNotNextTitleSlide));
     }
 
     partial void OnVersesChanged(List<Verse> value)
     {
         OnPropertyChanged(nameof(CurrentVerseContent));
         OnPropertyChanged(nameof(CurrentVerseLabel));
+        OnPropertyChanged(nameof(CurrentVerseLabelColor));
+        OnPropertyChanged(nameof(NextVerseContent));
+        OnPropertyChanged(nameof(NextVerseLabel));
+        OnPropertyChanged(nameof(NextVerseLabelColor));
         OnPropertyChanged(nameof(CanGoNext));
         OnPropertyChanged(nameof(CanGoPrevious));
         OnPropertyChanged(nameof(VerseIndicator));
         OnPropertyChanged(nameof(IsTitleSlide));
+        OnPropertyChanged(nameof(IsNotTitleSlide));
     }
 
     public string? CurrentVerseContent =>
         Verses.Any() && CurrentVerseIndex >= 0 && CurrentVerseIndex < Verses.Count
-            ? Verses[CurrentVerseIndex].Content
+            ? StripNumberPrefix(Verses[CurrentVerseIndex].Content)
             : null;
 
-    public string? CurrentVerseLabel =>
-        Verses.Any() && CurrentVerseIndex >= 0 && CurrentVerseIndex < Verses.Count
-            ? Verses[CurrentVerseIndex].Label
+    public string? CurrentVerseLabel
+    {
+        get
+        {
+            if (!Verses.Any() || CurrentVerseIndex < 0 || CurrentVerseIndex >= Verses.Count) return null;
+            var verse = Verses[CurrentVerseIndex];
+            if (verse.Label == "Title") return LocalizationManager.Instance.GetString("Text.Title");
+            
+            var extracted = ExtractNumberPrefix(verse.Content);
+            if (!string.IsNullOrEmpty(extracted)) return extracted;
+            
+            if (!string.IsNullOrEmpty(verse.Label) && !verse.Label.StartsWith("Verse", StringComparison.Ordinal)) 
+                return (verse.Label == "Refren" || verse.Label == "Chorus") ? LocalizationManager.Instance.GetString("Text.Chorus") : verse.Label;
+                
+            if (verse.VerseNumber > 0) return $"{verse.VerseNumber}.";
+            
+            return "";
+        }
+    }
+
+    public string? PreviousVerseContent =>
+        Verses.Any() && CurrentVerseIndex > 0
+            ? Verses[CurrentVerseIndex - 1].Content
             : null;
 
-    public bool IsTitleSlide => 
-        Verses.Any() && CurrentVerseIndex >= 0 && CurrentVerseIndex < Verses.Count && Verses[CurrentVerseIndex].Label == "Titlu";
+    public string? NextVerseContent =>
+        Verses.Any() && CurrentVerseIndex < Verses.Count - 1
+            ? StripNumberPrefix(Verses[CurrentVerseIndex + 1].Content)
+            : null;
+
+    public bool IsChorus => CurrentVerseLabel == "Refren";
+    public bool IsVerseNumber => !string.IsNullOrEmpty(CurrentVerseLabel) && CurrentVerseLabel != "Refren" && CurrentVerseLabel != "Title";
+    public bool IsUnlabeledVerse => !IsChorus && !IsVerseNumber && !IsTitleSlide;
+
+    public bool IsTitleSlide => CurrentVerseLabel == LocalizationManager.Instance.GetString("Text.Title");
+    public bool IsNotTitleSlide => !IsTitleSlide && !string.IsNullOrEmpty(CurrentVerseContent);
+
+    public bool IsNextChorus => NextVerseLabel == "Refren";
+    public bool IsNextVerseNumber => !string.IsNullOrEmpty(NextVerseLabel) && NextVerseLabel != "Refren" && NextVerseLabel != "Title";
+    public bool IsNextUnlabeledVerse => !IsNextChorus && !IsNextVerseNumber && !string.IsNullOrEmpty(NextVerseContent);
+    public bool IsNextTitleSlide => NextVerseLabel == LocalizationManager.Instance.GetString("Text.Title");
+    public bool IsNotNextTitleSlide => !IsNextTitleSlide && !string.IsNullOrEmpty(NextVerseContent);
+
+    public string? NextVerseLabel =>
+        Verses.Any() && CurrentVerseIndex < Verses.Count - 1
+            ? (ExtractNumberPrefix(Verses[CurrentVerseIndex + 1].Content) ?? 
+               (Verses[CurrentVerseIndex + 1].Label == "Refren" || Verses[CurrentVerseIndex + 1].Label == "Chorus" ? LocalizationManager.Instance.GetString("Text.Chorus") : Verses[CurrentVerseIndex + 1].Label))
+            : null;
 
     public string? HymnTitle => CurrentHymn != null
         ? $"{CurrentHymn.Number}. {CurrentHymn.Title}"
         : null;
 
-    public string? HymnTitleOnly => CurrentHymn?.Title;
+    public string? LocalizedCategoryName => CurrentHymn?.Category != null
+        ? LocalizationManager.Instance.GetString($"Category.{CurrentHymn.Category.Slug}", CurrentHymn.Category.Name)
+        : null;
 
-    public bool CanGoNext => CurrentVerseIndex < Verses.Count - 1;
+    public string? HymnTitleOnly => CurrentHymn?.Title;
+    
+    public string CurrentVerseLabelColor
+    {
+        get
+        {
+            if (ActiveProfile != null && !ActiveProfile.EnableCustomChorusStyling)
+                return ActiveProfile.LabelColor;
+
+            var label = CurrentVerseLabel;
+            if (string.IsNullOrEmpty(label)) return ActiveProfile?.LabelColor ?? "#CCCCCC";
+
+            // Check if it's a Refren or a Number (e.g., "1.", "2.", etc.)
+            var isChorusOrNumber = label.Contains(LocalizationManager.Instance.GetString("Text.Chorus"), StringComparison.OrdinalIgnoreCase) || 
+                                  label.Contains("Chorus", StringComparison.OrdinalIgnoreCase) ||
+                                  (int.TryParse(label.TrimEnd('.'), out _));
+            
+            if (isChorusOrNumber)
+            {
+                return ActiveProfile?.CustomChorusColor ?? "#FFD700";
+            }
+            
+            return ActiveProfile?.LabelColor ?? "#CCCCCC";
+        }
+    }
+
+    public string NextVerseLabelColor
+    {
+        get
+        {
+            if (ActiveProfile != null && !ActiveProfile.EnableCustomChorusStyling)
+                return ActiveProfile.LabelColor;
+
+            var label = NextVerseLabel;
+            if (string.IsNullOrEmpty(label)) return ActiveProfile?.LabelColor ?? "#CCCCCC";
+
+            var isChorusOrNumber = label.Contains("Chorus", StringComparison.OrdinalIgnoreCase) || 
+                                  (int.TryParse(label.TrimEnd('.'), out _));
+            
+            if (isChorusOrNumber)
+            {
+                return ActiveProfile?.CustomChorusColor ?? "#FFD700";
+            }
+            
+            return ActiveProfile?.LabelColor ?? "#CCCCCC";
+        }
+    }
+
+    public bool CanGoNext => Verses.Any();
     public bool CanGoPrevious => CurrentVerseIndex > 0;
 
     [RelayCommand]
@@ -263,13 +423,14 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            StatusMessage = $"Loading hymn {HymnNumber} from {SelectedCategory}...";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.LoadingHymn"), HymnNumber, SelectedCategory);
 
             CurrentHymn = await _hymnService.GetHymnByNumberAsync(HymnNumber, SelectedCategory);
 
             if (CurrentHymn != null)
             {
-                Verses = await _hymnService.GetVersesForHymnAsync(CurrentHymn.Id);
+                var baseVerses = await _hymnService.GetVersesForHymnAsync(CurrentHymn.Id);
+                Verses = ExpandVersesWithChorus(baseVerses);
                 CurrentVerseIndex = 0;
 
                 OnPropertyChanged(nameof(CurrentVerseContent));
@@ -281,11 +442,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 OnPropertyChanged(nameof(CanGoPrevious));
                 OnPropertyChanged(nameof(VerseIndicator));
 
-                StatusMessage = $"Loaded: {CurrentHymn.Title} ({Verses.Count} verses)";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnLoaded"), CurrentHymn.Title, Verses.Count);
             }
             else
             {
-                StatusMessage = $"Hymn {HymnNumber} not found in {SelectedCategory}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnNotFound"), HymnNumber, SelectedCategory);
                 Verses = new();
                 CurrentHymn = null;
 
@@ -300,7 +461,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading hymn: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -311,35 +472,63 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            CurrentHymn = hymn;
-            Verses = await _hymnService.GetVersesForHymnAsync(hymn.Id);
+            // Only load verses if it's a new hymn or verses are empty
+            if (CurrentHymn?.Id != hymn.Id || Verses == null || Verses.Count == 0)
+            {
+                CurrentHymn = hymn;
+                HymnNumber = hymn.Number;
+                var baseVerses = await _hymnService.GetVersesForHymnAsync(hymn.Id);
+                Verses = ExpandVersesWithChorus(baseVerses);
+            }
+
             CurrentVerseIndex = Math.Min(verseIndex, Verses.Count - 1);
 
             OnPropertyChanged(nameof(CurrentVerseContent));
             OnPropertyChanged(nameof(CurrentVerseLabel));
+            OnPropertyChanged(nameof(CurrentVerseLabelColor));
             OnPropertyChanged(nameof(HymnTitle));
+            OnPropertyChanged(nameof(HymnTitleOnly));
+            OnPropertyChanged(nameof(IsTitleSlide));
             OnPropertyChanged(nameof(CanGoNext));
             OnPropertyChanged(nameof(CanGoPrevious));
             OnPropertyChanged(nameof(VerseIndicator));
-
-            StatusMessage = $"Loaded: {CurrentHymn.Title} ({Verses.Count} verses)";
+            OnPropertyChanged(nameof(IsChorus));
+            OnPropertyChanged(nameof(IsVerseNumber));
+            OnPropertyChanged(nameof(IsUnlabeledVerse));
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading hymn: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.SyncError"), ex.Message);
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    [RelayCommand]
     public void NextVerse()
     {
         if (CanGoNext)
         {
-            CurrentVerseIndex++;
+            if (CurrentVerseIndex < Verses.Count - 1)
+            {
+                CurrentVerseIndex++;
+            }
+            else
+            {
+                // On last slide, exit the display
+                StatusMessage = LocalizationManager.Instance.GetString("Status.Finalized");
+                RequestClose?.Invoke();
+                IsDisplayWindowOpen = false;
+            }
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanGoPrevious))]
+    [RelayCommand]
+    public void CloseDisplay()
+    {
+        IsDisplayWindowOpen = false;
+        RequestClose?.Invoke();
+    }
+
+    [RelayCommand]
     public void PreviousVerse()
     {
         if (CanGoPrevious)
@@ -382,11 +571,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 SearchResults.Add(result);
             }
 
-            StatusMessage = $"Found {SearchResults.Count} hymns";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Searching"), SearchResults.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Search error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -423,16 +612,16 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 OnPropertyChanged(nameof(CurrentVerseLabel));
                 OnPropertyChanged(nameof(HymnTitle));
                 OnPropertyChanged(nameof(FavoriteIcon));
-                StatusMessage = $"Loaded: {CurrentHymn.Number}. {CurrentHymn.Title}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnLoaded"), CurrentHymn.Title, Verses.Count);
             }
             else
             {
-                StatusMessage = $"Hymn {number} not found in {categorySlug}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnNotFound"), number, categorySlug);
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading hymn: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -445,7 +634,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading recent hymns: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -469,7 +658,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error toggling favorite: {ex.Message}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
             }
         }
     }
@@ -510,7 +699,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         else
         {
             // Show error - keep banner visible so user can retry
-            StatusMessage = "Failed to download update. Please try again later.";
+            StatusMessage = LocalizationManager.Instance.GetString("Status.Error", "Error downloading update.");
             IsDownloadingUpdate = false;
             // Note: Keep IsUpdateAvailable = true so the banner stays visible for retry
         }
@@ -557,7 +746,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private void OnAudioPlaybackEnded(object? sender, EventArgs e)
     {
         PlayPauseIcon = "▶";
-        PlayPauseTooltip = "Play";
+        PlayPauseTooltip = LocalizationManager.Instance.GetString("Text.Play");
         AudioPosition = 0;
     }
 
@@ -567,12 +756,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             case PlaybackState.Playing:
                 PlayPauseIcon = "⏸";
-                PlayPauseTooltip = "Pause";
+                PlayPauseTooltip = LocalizationManager.Instance.GetString("Text.Pause");
                 break;
             case PlaybackState.Paused:
             case PlaybackState.Stopped:
                 PlayPauseIcon = "▶";
-                PlayPauseTooltip = "Play";
+                PlayPauseTooltip = LocalizationManager.Instance.GetString("Text.Play");
                 break;
         }
     }
@@ -584,7 +773,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (index >= 0)
         {
             CurrentVerseIndex = index;
-            StatusMessage = $"Auto-advanced to verse {verseNumber}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Text.Verse"), verseNumber);
         }
     }
 
@@ -607,7 +796,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Audio error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -624,7 +813,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Audio error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -645,11 +834,11 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             // Reload timing map in synchronizer
             _synchronizer.LoadTimingMap(timingMapJson);
 
-            StatusMessage = "Timings saved successfully";
+            StatusMessage = "Timpi salvați cu succes";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error saving timings: {ex.Message}";
+            StatusMessage = $"Eroare la salvarea timpilor: {ex.Message}";
         }
     }
 
@@ -659,7 +848,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _countdown?.Cancel();
         IsCountdownActive = false;
         CountdownSeconds = 0;
-        StatusMessage = "Auto-play cancelled";
+        StatusMessage = "Redare automată anulată";
     }
 
     private async Task StartAutoPlayCountdownAsync()
@@ -700,7 +889,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Countdown error: {ex.Message}";
+            StatusMessage = $"Eroare numărătoare inversă: {ex.Message}";
             IsCountdownActive = false;
         }
     }
@@ -731,23 +920,23 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                     _synchronizer.LoadTimingMap(recording.TimingMapJson);
                 }
 
-                StatusMessage = $"Audio loaded: {recording.FilePath}";
+                StatusMessage = $"Audio încărcat: {recording.FilePath}";
             }
             else
             {
                 IsAudioLoaded = false;
-                StatusMessage = "No audio file available for this hymn";
+                StatusMessage = "Niciun fișier audio disponibil pentru acest imn";
             }
         }
         catch (FileNotFoundException)
         {
             IsAudioLoaded = false;
-            StatusMessage = "Audio file not found. Check audio library path in settings.";
+            StatusMessage = "Fișierul audio nu a fost găsit. Verificați calea bibliotecii audio în setări.";
         }
         catch (Exception ex)
         {
             IsAudioLoaded = false;
-            StatusMessage = $"Error loading audio: {ex.Message}";
+            StatusMessage = $"Eroare la încărcarea audio: {ex.Message}";
         }
     }
 
@@ -766,5 +955,62 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _countdown?.Dispose();
 
         _disposed = true;
+    }
+
+    private string? ExtractNumberPrefix(string? content)
+    {
+        if (string.IsNullOrEmpty(content)) return null;
+        var firstSpace = content.IndexOf(' ');
+        if (firstSpace > 0)
+        {
+            var firstWord = content.Substring(0, firstSpace);
+            if (int.TryParse(firstWord.TrimEnd('.'), out _))
+            {
+                return firstWord;
+            }
+        }
+        return null;
+    }
+
+    private string? StripNumberPrefix(string? content)
+    {
+        if (string.IsNullOrEmpty(content)) return null;
+        var prefix = ExtractNumberPrefix(content);
+        if (prefix != null)
+        {
+            return content.Substring(prefix.Length).TrimStart();
+        }
+        return content;
+    }
+
+    private List<Verse> ExpandVersesWithChorus(List<Verse> baseVerses)
+    {
+        if (baseVerses == null || baseVerses.Count <= 2) return baseVerses ?? new();
+
+        var expanded = new List<Verse>();
+        var titleSlide = baseVerses.FirstOrDefault(v => v.Label == "Title");
+        var actualVerses = baseVerses.Where(v => v.Label != "Title").ToList();
+        
+        if (titleSlide != null) expanded.Add(titleSlide);
+
+        var chorus = actualVerses.FirstOrDefault(v => v.Label == "Refren" || v.Label == "Chorus");
+        
+        // If there's no chorus, just return the original list (with title)
+        if (chorus == null) return baseVerses;
+
+        // Check if the chorus is already repeated in the list
+        var chorusCount = actualVerses.Count(v => v.Label == "Refren" || v.Label == "Chorus");
+        if (chorusCount > 1) return baseVerses;
+
+        // Expand: Verse 1, Chorus, Verse 2, Chorus...
+        var numberedVerses = actualVerses.Where(v => v.Label != "Refren" && v.Label != "Chorus").ToList();
+        
+        for (int i = 0; i < numberedVerses.Count; i++)
+        {
+            expanded.Add(numberedVerses[i]);
+            expanded.Add(chorus);
+        }
+
+        return expanded;
     }
 }

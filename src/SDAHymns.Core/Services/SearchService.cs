@@ -41,6 +41,7 @@ public class SearchService : ISearchService
     public async Task<List<HymnSearchResult>> SearchHymnsAsync(string query, string? categorySlug = null)
     {
         var hymnsQuery = _context.Hymns
+            .AsNoTracking()
             .Include(h => h.Category)
             .Include(h => h.Verses)
             .AsQueryable();
@@ -178,6 +179,7 @@ public class SearchService : ISearchService
     public async Task<List<Hymn>> GetRecentHymnsAsync(int count = 10)
     {
         return await _context.Hymns
+            .AsNoTracking()
             .Include(h => h.Category)
             .Where(h => h.LastAccessedAt != null)
             .OrderByDescending(h => h.LastAccessedAt)

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using SDAHymns.Core.Data.Models;
 using SDAHymns.Core.Models;
 using SDAHymns.Core.Services;
+using SDAHymns.Desktop.Services;
 
 namespace SDAHymns.Desktop.ViewModels;
 
@@ -20,7 +21,7 @@ public partial class RecorderModeViewModel : ViewModelBase
     private ObservableCollection<TimingEntry> _recordedTimings = new();
 
     [ObservableProperty]
-    private string _statusMessage = "Press Play to start recording";
+    private string _statusMessage = LocalizationManager.Instance.GetString("Recorder.Status.PressPlay");
 
     [ObservableProperty]
     private bool _isPlaying = false;
@@ -52,7 +53,7 @@ public partial class RecorderModeViewModel : ViewModelBase
     {
         _currentRecording = recording;
         HymnTitle = $"{hymn.Number}. {hymn.Title}";
-        StatusMessage = $"Ready to record timings for {hymn.Title}";
+        StatusMessage = string.Format(LocalizationManager.Instance.GetString("Recorder.Status.Ready"), hymn.Title);
         NextVerseNumber = 1;
         RecordedTimings.Clear();
 
@@ -84,12 +85,12 @@ public partial class RecorderModeViewModel : ViewModelBase
             {
                 _timingRecorder.StartRecording();
                 IsRecording = true;
-                StatusMessage = "Recording... Press TAP or Spacebar for each verse";
+                StatusMessage = LocalizationManager.Instance.GetString("Recorder.Status.Recording");
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Playback error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -97,7 +98,7 @@ public partial class RecorderModeViewModel : ViewModelBase
     private async Task PauseAsync()
     {
         await _audioPlayer.PauseAsync();
-        StatusMessage = "Paused";
+        StatusMessage = LocalizationManager.Instance.GetString("Recorder.Status.Paused");
     }
 
     [RelayCommand]
@@ -106,7 +107,7 @@ public partial class RecorderModeViewModel : ViewModelBase
         await _audioPlayer.StopAsync();
         _timingRecorder.StopRecording();
         IsRecording = false;
-        StatusMessage = "Stopped - You can save timings or continue recording";
+        StatusMessage = LocalizationManager.Instance.GetString("Recorder.Status.Stopped");
     }
 
     [RelayCommand]
@@ -114,7 +115,7 @@ public partial class RecorderModeViewModel : ViewModelBase
     {
         if (!IsRecording || !IsPlaying)
         {
-            StatusMessage = "Press Play first to start recording";
+            StatusMessage = LocalizationManager.Instance.GetString("Recorder.Status.PressPlayFirst");
             return;
         }
 
@@ -145,7 +146,7 @@ public partial class RecorderModeViewModel : ViewModelBase
         RecordedTimings.Clear();
         _timingRecorder.ClearTimings();
         NextVerseNumber = 1;
-        StatusMessage = "All timings cleared";
+        StatusMessage = LocalizationManager.Instance.GetString("Recorder.Status.Cleared");
     }
 
     public string GetTimingMapJson()
@@ -167,7 +168,7 @@ public partial class RecorderModeViewModel : ViewModelBase
                 DisplayTime = FormatTime(timestamp.Value)
             });
 
-            StatusMessage = $"Recorded verse {verseNumber} at {FormatTime(timestamp.Value)}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Recorder.Status.Recorded"), verseNumber, FormatTime(timestamp.Value));
         }
     }
 
@@ -181,7 +182,7 @@ public partial class RecorderModeViewModel : ViewModelBase
     {
         _timingRecorder.StopRecording();
         IsRecording = false;
-        StatusMessage = $"Playback ended - Recorded {RecordedTimings.Count} timings";
+        StatusMessage = string.Format(LocalizationManager.Instance.GetString("Recorder.Status.Finished"), RecordedTimings.Count);
     }
 
     private void OnStateChanged(object? sender, PlaybackState state)

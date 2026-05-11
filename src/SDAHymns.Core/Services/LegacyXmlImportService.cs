@@ -19,7 +19,8 @@ public class LegacyXmlImportService : ILegacyXmlImportService
         var result = new ImportResult();
         var categories = await _context.HymnCategories.OrderBy(c => c.DisplayOrder).ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Starting import of all {CategoryCount} categories", categories.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Starting import of all {CategoryCount} categories", categories.Count);
 
         foreach (var category in categories)
         {
@@ -35,9 +36,10 @@ public class LegacyXmlImportService : ILegacyXmlImportService
             }
         }
 
-        _logger.LogInformation(
-            "Import completed: {ImportedCount} imported, {SkippedCount} skipped, {ErrorCount} errors",
-            result.ImportedCount, result.SkippedCount, result.Errors.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation(
+                "Import completed: {ImportedCount} imported, {SkippedCount} skipped, {ErrorCount} errors",
+                result.ImportedCount, result.SkippedCount, result.Errors.Count);
 
         return result;
     }
@@ -46,7 +48,8 @@ public class LegacyXmlImportService : ILegacyXmlImportService
     {
         var result = new ImportResult { CategorySlug = categorySlug };
 
-        _logger.LogInformation("Importing category: {CategorySlug}", categorySlug);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Importing category: {CategorySlug}", categorySlug);
 
         // Get category from database
         var category = await _context.HymnCategories
@@ -74,7 +77,8 @@ public class LegacyXmlImportService : ILegacyXmlImportService
             return result;
         }
 
-        _logger.LogDebug("Parsing XML file: {XmlPath}", xmlPath);
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug("Parsing XML file: {XmlPath}", xmlPath);
 
         // Parse XML
         List<Hymn> hymns;
@@ -82,7 +86,8 @@ public class LegacyXmlImportService : ILegacyXmlImportService
         {
             hymns = ParseXmlFile(xmlPath, category.Id);
             result.ParsedCount = hymns.Count;
-            _logger.LogDebug("Parsed {HymnCount} hymns from XML", hymns.Count);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("Parsed {HymnCount} hymns from XML", hymns.Count);
         }
         catch (Exception ex)
         {
@@ -108,15 +113,17 @@ public class LegacyXmlImportService : ILegacyXmlImportService
             await _context.SaveChangesAsync(cancellationToken);
             result.ImportedCount = newHymns.Count;
 
-            _logger.LogInformation(
-                "Category {CategorySlug}: Imported {ImportedCount} hymns ({SkippedCount} skipped)",
-                categorySlug, result.ImportedCount, result.SkippedCount);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation(
+                    "Category {CategorySlug}: Imported {ImportedCount} hymns ({SkippedCount} skipped)",
+                    categorySlug, result.ImportedCount, result.SkippedCount);
         }
         else
         {
-            _logger.LogInformation(
-                "Category {CategorySlug}: No new hymns to import ({SkippedCount} already exist)",
-                categorySlug, result.SkippedCount);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation(
+                    "Category {CategorySlug}: No new hymns to import ({SkippedCount} already exist)",
+                    categorySlug, result.SkippedCount);
         }
 
         return result;
@@ -162,7 +169,8 @@ public class LegacyXmlImportService : ILegacyXmlImportService
 
             if (legacyPath == null)
             {
-                _logger.LogDebug("PowerPoint file not found for hymn {Number} in {Category}", numar, Path.GetFileName(Path.GetDirectoryName(xmlPath)));
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("PowerPoint file not found for hymn {Number} in {Category}", numar, Path.GetFileName(Path.GetDirectoryName(xmlPath)));
             }
 
             var hymn = new Hymn

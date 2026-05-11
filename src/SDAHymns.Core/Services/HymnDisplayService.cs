@@ -25,21 +25,22 @@ public class HymnDisplayService : IHymnDisplayService
     public async Task<Hymn?> GetHymnByNumberAsync(int hymnNumber, string categorySlug)
     {
         var hymn = await _context.Hymns
+            .AsNoTracking()
             .Include(h => h.Category)
-            .Include(h => h.Verses.OrderBy(v => v.DisplayOrder))
+            .Include(h => h.Verses)
             .FirstOrDefaultAsync(h =>
                 h.Number == hymnNumber &&
                 h.Category.Slug == categorySlug);
 
         if (hymn != null && hymn.Verses != null)
         {
-            var versesList = hymn.Verses.ToList();
+            var versesList = hymn.Verses.OrderBy(v => v.DisplayOrder).ToList();
             var titleVerse = new Verse
             {
                 Id = -1,
                 HymnId = hymn.Id,
                 VerseNumber = 0,
-                Label = "Titlu",
+                Label = "Title",
                 Content = $"{hymn.Number}. {hymn.Title}",
                 DisplayOrder = -1,
                 IsInline = false,
@@ -55,11 +56,14 @@ public class HymnDisplayService : IHymnDisplayService
     public async Task<List<Verse>> GetVersesForHymnAsync(int hymnId)
     {
         var verses = await _context.Verses
+            .AsNoTracking()
             .Where(v => v.HymnId == hymnId)
             .OrderBy(v => v.DisplayOrder)
             .ToListAsync();
 
-        var hymn = await _context.Hymns.FindAsync(hymnId);
+        var hymn = await _context.Hymns
+            .AsNoTracking()
+            .FirstOrDefaultAsync(h => h.Id == hymnId);
         if (hymn != null)
         {
             var titleVerse = new Verse
@@ -67,7 +71,7 @@ public class HymnDisplayService : IHymnDisplayService
                 Id = -1,
                 HymnId = hymn.Id,
                 VerseNumber = 0,
-                Label = "Titlu",
+                Label = "Title",
                 Content = $"{hymn.Number}. {hymn.Title}",
                 DisplayOrder = -1,
                 IsInline = false,

@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="SDAHymns.Desktop.Views.ShortcutsWindow"
         x:DataType="vm:ShortcutsWindowViewModel"
-        Title="Keyboard Shortcuts"
+        Title="{DynamicResource Shortcuts.Title}"
         Width="800" Height="600"
         Background="#0D0D0D"
         Icon="/Assets/avalonia-logo.ico"
@@ -24,11 +24,11 @@
                 BorderThickness="0,0,0,1"
                 Padding="20">
             <StackPanel>
-                <TextBlock Text="Keyboard Shortcuts"
+                <TextBlock Text="{DynamicResource Shortcuts.Title}"
                            FontSize="24"
                            FontWeight="Bold"
                            Foreground="White"/>
-                <TextBlock Text="Click any shortcut to rebind it, then press your desired key combination"
+                <TextBlock Text="{DynamicResource Shortcuts.Instruction}"
                            FontSize="13"
                            Foreground="#888888"
                            Margin="0,5,0,0"/>
@@ -43,7 +43,7 @@
                 BorderThickness="0,0,0,1"
                 Padding="15,10">
             <StackPanel>
-                <TextBlock Text="⚠ Shortcut Conflicts Detected"
+                <TextBlock Text="{DynamicResource Shortcuts.Conflicts}"
                            FontWeight="Bold"
                            FontSize="14"
                            Foreground="#1A1A1A"
@@ -115,7 +115,7 @@
                                                                       TextAlignment="Center"
                                                                       HorizontalAlignment="Center"/>
                                                             <!-- Listening state -->
-                                                            <TextBlock Text="⌨ Press keys..."
+                                                            <TextBlock Text="{DynamicResource Shortcuts.PressKeys}"
                                                                       IsVisible="{Binding IsListening}"
                                                                       FontFamily="Consolas, Courier New, monospace"
                                                                       FontSize="14"
@@ -161,7 +161,7 @@
                 <StackPanel Grid.Column="0"
                            Orientation="Horizontal"
                            Spacing="10">
-                    <Button Content="Save Changes"
+                    <Button Content="{DynamicResource Shortcuts.SaveChanges}"
                             Command="{Binding SaveChangesCommand}"
                             IsVisible="{Binding HasChanges}"
                             Width="140"
@@ -170,7 +170,7 @@
                             Foreground="White"
                             BorderBrush="#1B5E20"/>
 
-                    <Button Content="Cancel"
+                    <Button Content="{DynamicResource Text.Cancel}"
                             Command="{Binding CancelChangesCommand}"
                             IsVisible="{Binding HasChanges}"
                             Width="100"
@@ -179,7 +179,7 @@
                             Foreground="White"
                             BorderBrush="#B71C1C"/>
 
-                    <Button Content="Reset to Defaults"
+                    <Button Content="{DynamicResource Shortcuts.ResetDefaults}"
                             Command="{Binding ResetToDefaultsCommand}"
                             Width="150"
                             Height="35"
@@ -188,8 +188,8 @@
                             BorderBrush="#444444"/>
                 </StackPanel>
 
-                <Button Grid.Column="1"
-                        Content="Close"
+                        <Button Grid.Column="1"
+                        Content="{DynamicResource Text.Close}"
                         Click="CloseButton_Click"
                         Width="100"
                         Height="35"

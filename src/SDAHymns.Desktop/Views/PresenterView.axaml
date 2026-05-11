@@ -1,0 +1,196 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="SDAHymns.Desktop.Views.PresenterView"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{DynamicResource Presenter.DisplayTitle}"
+        Background="#0F0F0F"
+        Width="1000" Height="750">
+
+    <Grid RowDefinitions="*,1.2*,Auto">
+        <!-- Next Slide Preview (Top) -->
+        <Border Grid.Row="0" Background="#161616" BorderBrush="#222222" BorderThickness="0,0,0,1">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="15">
+                    <Border Background="#333333" CornerRadius="4" Padding="8,4">
+                        <TextBlock Text="{DynamicResource Text.Next}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                </StackPanel>
+                
+                <Viewbox Stretch="Uniform" Margin="60,30">
+                    <StackPanel Width="1600">
+                        <!-- Title Slide Layout -->
+                        <StackPanel IsVisible="{Binding IsNextTitleSlide}">
+                             <TextBlock Text="{Binding CurrentHymn.Number}" 
+                                       Foreground="#FFD700" 
+                                       FontSize="120" 
+                                       FontWeight="Bold" 
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding HymnTitleOnly}" 
+                                       Foreground="White" 
+                                       FontSize="100" 
+                                       FontWeight="Bold" 
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Content Layouts -->
+                        <StackPanel IsVisible="{Binding IsNotNextTitleSlide}">
+                            <!-- Chorus Layout (Above/Left) -->
+                            <StackPanel IsVisible="{Binding IsNextChorus}" Margin="0,0,0,20">
+                                <TextBlock Text="{DynamicResource Text.Chorus}" 
+                                           Foreground="{Binding NextVerseLabelColor}" 
+                                           FontSize="60" 
+                                           FontWeight="Bold" 
+                                           HorizontalAlignment="Left"/>
+                                <TextBlock Text="{Binding NextVerseContent}" 
+                                           Foreground="#888888" 
+                                           FontSize="80" 
+                                           TextAlignment="Left"
+                                           TextWrapping="Wrap"
+                                           HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <!-- Numbered Verse Layout (Inline) -->
+                            <Grid IsVisible="{Binding IsNextVerseNumber}" ColumnDefinitions="Auto,*" Margin="0,0,0,0">
+                                <TextBlock Grid.Column="0" 
+                                           Text="{Binding NextVerseLabel}" 
+                                           Foreground="{Binding NextVerseLabelColor}" 
+                                           FontSize="100" 
+                                           FontWeight="Bold" 
+                                           Margin="0,0,40,0"
+                                           VerticalAlignment="Top"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="{Binding NextVerseContent}" 
+                                           Foreground="#888888" 
+                                           FontSize="100" 
+                                           TextAlignment="Left"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Top"
+                                           HorizontalAlignment="Stretch"/>
+                            </Grid>
+
+                            <!-- Unlabeled Verse Layout (Simple Center) -->
+                            <StackPanel IsVisible="{Binding IsNextUnlabeledVerse}">
+                                <TextBlock Text="{Binding NextVerseContent}" 
+                                           Foreground="#888888" 
+                                           FontSize="100" 
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Viewbox>
+            </Grid>
+        </Border>
+
+        <!-- Current Slide Preview (Middle) -->
+        <Border Grid.Row="1" Background="#000000">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="15">
+                    <Border Background="#6366F1" CornerRadius="4" Padding="8,4">
+                        <TextBlock Text="{DynamicResource Text.Current}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                </StackPanel>
+                
+                <Viewbox Stretch="Uniform" Margin="60,30">
+                    <StackPanel>
+                        <!-- Title Slide Layout -->
+                        <StackPanel IsVisible="{Binding IsTitleSlide}">
+                             <TextBlock Text="{Binding CurrentHymn.Number}" 
+                                       Foreground="#FFD700" 
+                                       FontSize="100" 
+                                       FontWeight="Bold" 
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding HymnTitleOnly}" 
+                                       Foreground="White" 
+                                       FontSize="60" 
+                                       FontWeight="Bold" 
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       MaxWidth="1200"/>
+                        </StackPanel>
+
+                        <!-- Verse Slide Layout -->
+                        <StackPanel IsVisible="{Binding IsNotTitleSlide}">
+                            <!-- Chorus Style -->
+                            <TextBlock Text="{DynamicResource Text.Chorus}"
+                                       IsVisible="{Binding IsChorus}"
+                                       Foreground="{Binding CurrentVerseLabelColor}"
+                                       FontSize="48"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Left"
+                                       Margin="0,0,0,15"/>
+                            <TextBlock Text="{Binding CurrentVerseContent}" 
+                                       IsVisible="{Binding IsChorus}"
+                                       Foreground="White" 
+                                       FontSize="48"
+                                       TextAlignment="Left"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="1200"/>
+
+                            <!-- Verse Style -->
+                            <Grid IsVisible="{Binding IsVerseNumber}" ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding CurrentVerseLabel}"
+                                           Foreground="{Binding CurrentVerseLabelColor}"
+                                           FontSize="48"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Top"
+                                           Margin="0,0,15,0"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding CurrentVerseContent}" 
+                                           Foreground="White" 
+                                           FontSize="48"
+                                           TextAlignment="Left"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Top"
+                                           MaxWidth="1200"/>
+                            </Grid>
+                            
+                            <!-- Fallback -->
+                            <TextBlock Text="{Binding CurrentVerseContent}"
+                                       IsVisible="{Binding IsUnlabeledVerse}"
+                                       Foreground="White" 
+                                       FontSize="48"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="1200"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Viewbox>
+            </Grid>
+        </Border>
+
+        <!-- Control Bar (Bottom) -->
+        <Border Grid.Row="2" Background="#1A1A1A" Height="80" Padding="20,10">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,*">
+                <Button Grid.Column="1" Command="{Binding PreviousVerseCommand}" 
+                        Background="#333333" Foreground="White" Width="150" Height="50" Margin="10,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="◀" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource Text.Previous}" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+                
+                <Border Grid.Column="2" Background="#222222" CornerRadius="25" Padding="20,5" Margin="20,0">
+                    <TextBlock Text="{Binding VerseIndicator}" Foreground="#AAAAAA" VerticalAlignment="Center" FontSize="14"/>
+                </Border>
+
+                <Button Grid.Column="3" Command="{Binding NextVerseCommand}" 
+                        Background="#6366F1" Foreground="White" Width="150" Height="50" Margin="10,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{DynamicResource Text.Next}" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <TextBlock Text="▶" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

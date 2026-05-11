@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Microsoft.Extensions.DependencyInjection;
 using SDAHymns.Core.Data.Models;
@@ -15,6 +16,8 @@ public partial class RemoteWidget : Window
 {
     private RemoteWidgetViewModel? ViewModel => DataContext as RemoteWidgetViewModel;
     private DisplayWindow? _displayWindow;
+    private PresenterView? _presenterView;
+    private MainWindowViewModel? _sharedProjectionViewModel;
     private IServiceProvider? _serviceProvider;
 
     public RemoteWidget()
@@ -25,6 +28,9 @@ public partial class RemoteWidget : Window
         this.AttachDevTools();
 #endif
 
+        // Add global keyboard handling for arrows (Tunnel captures keys BEFORE buttons can steal them)
+        AddHandler(KeyDownEvent, RemoteWidget_KeyDown!, RoutingStrategies.Tunnel);
+
         // Set initial position
         Opened += OnOpened;
         PositionChanged += OnPositionChanged;
@@ -33,6 +39,41 @@ public partial class RemoteWidget : Window
     public void SetServiceProvider(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+    }
+
+    private void RemoteWidget_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel == null) return;
+
+        // If focus is in a TextBox, don't intercept arrow keys (so user can still type/edit)
+        if (this.FocusManager?.GetFocusedElement() is TextBox && e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        switch (e.Key)
+        {
+            case Key.Right:
+            case Key.Down:
+                if (ViewModel.NextVerseCommand.CanExecute(null))
+                    ViewModel.NextVerseCommand.Execute(null);
+                e.Handled = true;
+                break;
+
+
+            case Key.Left:
+            case Key.Up:
+                if (ViewModel.PreviousVerseCommand.CanExecute(null))
+                    ViewModel.PreviousVerseCommand.Execute(null);
+                e.Handled = true;
+                break;
+
+            case Key.Enter:
+                // Unfocus the input box by focusing the window
+                this.Focus();
+                e.Handled = true;
+                break;
+        }
     }
 
     private async void OnOpened(object? sender, EventArgs e)
@@ -45,6 +86,15 @@ public partial class RemoteWidget : Window
         // Wire up callbacks
         ViewModel.OnShowHymnRequested = ShowHymnOnDisplay;
         ViewModel.OnBlankDisplayRequested = BlankDisplay;
+        ViewModel.OnTogglePresenterViewRequested = TogglePresenterView;
+        ViewModel.OnRequestFocusClear = () => this.Focus();
+
+        // Sync with shared ViewModel
+        var sharedVm = GetSharedProjectionViewModel();
+        if (sharedVm != null)
+        {
+            sharedVm.PropertyChanged += SharedVm_PropertyChanged;
+        }
 
         // Load saved position or use default
         if (!double.IsNaN(ViewModel.Settings.PositionX) && !double.IsNaN(ViewModel.Settings.PositionY))
@@ -112,47 +162,144 @@ public partial class RemoteWidget : Window
         mainWindow.Show();
     }
 
-    public async void ShowHymnOnDisplay(Hymn hymn, int verseIndex = 0)
+    private void ShowPresenter()
     {
-        if (_serviceProvider == null || ViewModel == null || hymn == null) return;
-
-        // Create DisplayWindow with a MainWindowViewModel if it doesn't exist
-        if (_displayWindow == null)
-        {
-            var displayViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
-
-            _displayWindow = new DisplayWindow
-            {
-                DataContext = displayViewModel,
-                Width = 1920, // Default 16:9
-                Height = 1080
-            };
-
-            // Apply active profile
-            if (displayViewModel.ActiveProfile != null)
-            {
-                _displayWindow.ApplyProfile(displayViewModel.ActiveProfile);
-            }
-
-            _displayWindow.Closed += (s, e) => _displayWindow = null;
-        }
-
-        // Load the hymn into the display ViewModel
-        if (_displayWindow.DataContext is MainWindowViewModel displayViewModel2)
-        {
-            // Set the hymn on the display ViewModel
-            await displayViewModel2.LoadHymnDirectlyAsync(hymn, verseIndex);
-        }
-
-        // Show fullscreen
-        _displayWindow.Show();
-        _displayWindow.WindowState = WindowState.FullScreen;
+        if (_presenterView != null) return;
+        
+        _presenterView = new PresenterView();
+        _presenterView.Closed += (s, e) => {
+            _presenterView = null;
+            if (_displayWindow == null) ViewModel?.BlankDisplay();
+        };
+        _presenterView.Show();
     }
 
     public void BlankDisplay()
     {
         _displayWindow?.Close();
         _displayWindow = null;
+        _presenterView?.Close();
+        _presenterView = null;
+    }
+
+    private MainWindowViewModel? GetSharedProjectionViewModel()
+    {
+        if (_sharedProjectionViewModel == null && _serviceProvider != null)
+        {
+            _sharedProjectionViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
+        }
+        return _sharedProjectionViewModel;
+    }
+
+    public void TogglePresenterView()
+    {
+        if (_presenterView != null)
+        {
+            _presenterView.Close();
+            _presenterView = null;
+            return;
+        }
+
+        var presenterViewModel = GetSharedProjectionViewModel();
+        if (presenterViewModel == null) return;
+
+        _presenterView = new PresenterView
+        {
+            DataContext = presenterViewModel
+        };
+
+        _presenterView.Closed += (s, e) => {
+            _presenterView = null;
+            if (_displayWindow != null)
+            {
+                _displayWindow.Close();
+                _displayWindow = null;
+            }
+            if (ViewModel != null) ViewModel.BlankDisplay();
+        };
+        _presenterView.Show();
+    }
+
+    public async void ShowHymnOnDisplay(Hymn hymn, int verseIndex = 0)
+    {
+        try
+        {
+            if (_serviceProvider == null || ViewModel == null || hymn == null) return;
+
+            var displayViewModel = GetSharedProjectionViewModel();
+            if (displayViewModel == null) return;
+
+            // Create DisplayWindow if it doesn't exist
+            if (_displayWindow == null)
+            {
+                _displayWindow = new DisplayWindow
+                {
+                    DataContext = displayViewModel,
+                    Width = 1920, // Default 16:9
+                    Height = 1080
+                };
+
+                // Apply active profile
+                if (displayViewModel.ActiveProfile != null)
+                {
+                    _displayWindow.ApplyProfile(displayViewModel.ActiveProfile);
+                }
+
+                // Setup synchronized closure
+                displayViewModel.RequestClose += () => {
+                    ViewModel.BlankDisplay();
+                    _displayWindow?.Close();
+                    _displayWindow = null;
+                    _presenterView?.Close();
+                    _presenterView = null;
+                };
+
+                _displayWindow.Closed += (s, e) =>
+                {
+                    _displayWindow = null;
+                    _presenterView?.Close();
+                    _presenterView = null;
+                    if (ViewModel != null) ViewModel.BlankDisplay();
+                };
+            }
+
+            // Ensure PresenterView is also using the same VM if open
+            if (_presenterView != null && _presenterView.DataContext != displayViewModel)
+            {
+                _presenterView.DataContext = displayViewModel;
+            }
+
+            // Load the hymn into the shared ViewModel
+            await displayViewModel.LoadHymnDirectlyAsync(hymn, verseIndex);
+
+            // Show fullscreen on secondary monitor
+            if (!_displayWindow.IsVisible)
+            {
+                // Find secondary screen
+                var secondaryScreen = Screens.All.FirstOrDefault(s => !s.IsPrimary) ?? Screens.Primary;
+                if (secondaryScreen != null)
+                {
+                    _displayWindow.Position = secondaryScreen.Bounds.Position;
+                    _displayWindow.WindowState = WindowState.FullScreen;
+                }
+                
+                _displayWindow.Show();
+
+                // Automatically show Presenter View if it's not already open
+                if (_presenterView == null)
+                {
+                    TogglePresenterView();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error showing hymn: {ex.Message}");
+            if (ViewModel != null)
+            {
+                ViewModel.StatusMessage = $"Error: {ex.Message}";
+            }
+        }
     }
 
     private PixelPoint GetDefaultPosition()
@@ -170,4 +317,24 @@ public partial class RemoteWidget : Window
         return new PixelPoint(x, y);
     }
 
+    private void SharedVm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (ViewModel == null || sender is not MainWindowViewModel sharedVm) return;
+
+        if (e.PropertyName == nameof(MainWindowViewModel.CurrentVerseIndex))
+        {
+            ViewModel.SyncVerseIndex(sharedVm.CurrentVerseIndex);
+        }
+        else if (e.PropertyName == nameof(MainWindowViewModel.CurrentHymn))
+        {
+            if (sharedVm.CurrentHymn != null)
+            {
+                ViewModel.SyncHymn(sharedVm.CurrentHymn, sharedVm.CurrentVerseIndex);
+            }
+            else
+            {
+                ViewModel.BlankDisplay();
+            }
+        }
+    }
 }

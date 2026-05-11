@@ -5,12 +5,13 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    <NoWarn>$(NoWarn);AVLN3001;NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="Resources\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +38,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.*" />
     <PackageReference Include="Velopack" Version="0.0.1298" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.2" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 
   <ItemGroup>

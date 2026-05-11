@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SDAHymns.Core.Data;
 
@@ -10,9 +11,11 @@ using SDAHymns.Core.Data;
 namespace SDAHymns.Core.Migrations
 {
     [DbContext(typeof(HymnsContext))]
-    partial class HymnsContextModelSnapshot : ModelSnapshot
+    [Migration("20260506050623_AddCustomChorusColor")]
+    partial class AddCustomChorusColor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");

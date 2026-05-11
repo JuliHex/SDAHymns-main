@@ -29,37 +29,37 @@ public class HotKeyManager : IHotKeyManager
     private void RegisterDefaultHotKeys()
     {
         // Global shortcuts
-        Register("FocusSearch", "Focus Search Box", "Global", "F", "Ctrl", "Focus the search box to find hymns");
-        Register("ClearSearch", "Clear Search / Close Dialog", "Global", "Escape", "", "Clear search or close open dialogs");
-        Register("ToggleDisplay", "Toggle Display Window", "Global", "F5", "", "Show or hide the display window");
-        Register("ToggleFullscreen", "Toggle Fullscreen", "Global", "F11", "", "Toggle fullscreen mode on display window");
-        Register("OpenSettings", "Open Settings", "Global", "OemComma", "Ctrl", "Open application settings");
-        Register("QuitApp", "Quit Application", "Global", "Q", "Ctrl", "Close the application");
+        Register("FocusSearch", "Focalizează căutarea", "Global", "F", "Ctrl", "Focalizează caseta de căutare pentru a găsi imnuri");
+        Register("ClearSearch", "Șterge căutarea / Închide dialogul", "Global", "Escape", "", "Șterge căutarea sau închide dialogurile deschise");
+        Register("ToggleDisplay", "Comută fereastra de afișaj", "Global", "F5", "", "Arată sau ascunde fereastra de afișaj");
+        Register("ToggleFullscreen", "Comută ecran complet", "Global", "F11", "", "Comută modul ecran complet pe fereastra de afișaj");
+        Register("OpenSettings", "Deschide Setări", "Global", "OemComma", "Ctrl", "Deschide setările aplicației");
+        Register("QuitApp", "Închide aplicația", "Global", "Q", "Ctrl", "Închide aplicația");
 
         // Hymn navigation
-        Register("NextVerse", "Next Verse", "Navigation", "Space", "", "Move to next verse");
-        Register("PreviousVerse", "Previous Verse", "Navigation", "Space", "Shift", "Move to previous verse");
-        Register("NextVerseArrow", "Next Verse (Arrow)", "Navigation", "Right", "", "Move to next verse");
-        Register("PreviousVerseArrow", "Previous Verse (Arrow)", "Navigation", "Left", "", "Move to previous verse");
-        Register("NextVersePage", "Next Verse (Page Down)", "Navigation", "PageDown", "", "Move to next verse");
-        Register("PreviousVersePage", "Previous Verse (Page Up)", "Navigation", "PageUp", "", "Move to previous verse");
-        Register("FirstVerse", "First Verse", "Navigation", "Home", "", "Jump to first verse");
-        Register("LastVerse", "Last Verse", "Navigation", "End", "", "Jump to last verse");
+        Register("NextVerse", "Strofa următoare", "Navigare", "Space", "", "Trece la strofa următoare");
+        Register("PreviousVerse", "Strofa anterioară", "Navigare", "Space", "Shift", "Trece la strofa anterioară");
+        Register("NextVerseArrow", "Strofa următoare (Săgeată)", "Navigare", "Right", "", "Trece la strofa următoare");
+        Register("PreviousVerseArrow", "Strofa anterioară (Săgeată)", "Navigare", "Left", "", "Trece la strofa anterioară");
+        Register("NextVersePage", "Strofa următoare (Page Down)", "Navigare", "PageDown", "", "Trece la strofa următoare");
+        Register("PreviousVersePage", "Strofa anterioară (Page Up)", "Navigare", "PageUp", "", "Trece la strofa anterioară");
+        Register("FirstVerse", "Prima strofă", "Navigare", "Home", "", "Sari la prima strofă");
+        Register("LastVerse", "Ultima strofă", "Navigare", "End", "", "Sari la ultima strofă");
 
         // Search & selection
-        Register("SelectHymn", "Select Hymn", "Search", "Enter", "", "Load selected hymn from search results");
-        Register("ToggleFavorite", "Toggle Favorite", "Search", "D", "Ctrl", "Mark current hymn as favorite");
+        Register("SelectHymn", "Selectează Imnul", "Căutare", "Enter", "", "Încarcă imnul selectat din rezultatele căutării");
+        Register("ToggleFavorite", "Comută Favorit", "Căutare", "D", "Ctrl", "Marchează imnul curent ca favorit");
 
         // Recent hymns (Ctrl+1 through Ctrl+5)
-        Register("LoadRecent1", "Load Recent Hymn 1", "Search", "D1", "Ctrl", "Load first recent hymn");
-        Register("LoadRecent2", "Load Recent Hymn 2", "Search", "D2", "Ctrl", "Load second recent hymn");
-        Register("LoadRecent3", "Load Recent Hymn 3", "Search", "D3", "Ctrl", "Load third recent hymn");
-        Register("LoadRecent4", "Load Recent Hymn 4", "Search", "D4", "Ctrl", "Load fourth recent hymn");
-        Register("LoadRecent5", "Load Recent Hymn 5", "Search", "D5", "Ctrl", "Load fifth recent hymn");
+        Register("LoadRecent1", "Încarcă Imnul Recent 1", "Căutare", "D1", "Ctrl", "Încarcă primul imn recent");
+        Register("LoadRecent2", "Încarcă Imnul Recent 2", "Căutare", "D2", "Ctrl", "Încarcă al doilea imn recent");
+        Register("LoadRecent3", "Încarcă Imnul Recent 3", "Căutare", "D3", "Ctrl", "Încarcă al treilea imn recent");
+        Register("LoadRecent4", "Încarcă Imnul Recent 4", "Căutare", "D4", "Ctrl", "Încarcă al patrulea imn recent");
+        Register("LoadRecent5", "Încarcă Imnul Recent 5", "Căutare", "D5", "Ctrl", "Încarcă al cincilea imn recent");
 
         // Display control
-        Register("BlankDisplay", "Blank Display", "Display", "B", "", "Show black screen on display");
-        Register("ShowHelpOverlay", "Show Keyboard Shortcuts", "Global", "F1", "", "Show keyboard shortcuts overlay");
+        Register("BlankDisplay", "Ecran Negru", "Afișaj", "B", "", "Arată un ecran negru pe afișaj");
+        Register("ShowHelpOverlay", "Arată Comenzile Rapide", "Global", "F1", "", "Arată suprapunerea cu comenzile rapide de la tastatură");
     }
 
     private void Register(string action, string displayName, string category, string key, string modifiers, string? description = null)

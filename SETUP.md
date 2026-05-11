@@ -305,7 +305,7 @@ After setup is complete:
 
 1. **Read the documentation:**
    - `docs/CI-CD.md` - CI/CD workflow
-   - `CLAUDE.md` - Project overview
+   - `GEMINI.md` - Project overview
    - `.claude/spec/` - Feature specifications
 
 2. **Explore the code:**

@@ -59,4 +59,8 @@ public class DisplayProfile
     public bool TransparentBackground { get; set; } = false;
     public bool ShowVerseNumbers { get; set; } = true;
     public bool ShowHymnTitle { get; set; } = true;
+
+    // Custom Styling
+    public bool EnableCustomChorusStyling { get; set; } = true;
+    public string CustomChorusColor { get; set; } = "#FFD700";
 }

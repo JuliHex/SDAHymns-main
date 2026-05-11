@@ -222,6 +222,17 @@ public partial class MainWindow : Window
                 _displayWindow.ApplyProfile(viewModel.ActiveProfile);
             }
         }
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsDisplayWindowOpen))
+        {
+            if (!viewModel.IsDisplayWindowOpen)
+            {
+                if (_displayWindow != null)
+                {
+                    _displayWindow.Close();
+                    _displayWindow = null;
+                }
+            }
+        }
     }
 
     public void ToggleDisplayWindow()
@@ -247,8 +258,19 @@ public partial class MainWindow : Window
 
             _displayWindow.Closed += (s, e) =>
             {
-                viewModel.IsDisplayWindowOpen = false;
+                if (viewModel.IsDisplayWindowOpen)
+                {
+                    viewModel.IsDisplayWindowOpen = false;
+                    viewModel.CloseDisplay(); // New method to notify others
+                }
                 _displayWindow = null;
+            };
+
+            viewModel.RequestClose += () => {
+                if (_displayWindow != null) {
+                    _displayWindow.Close();
+                    _displayWindow = null;
+                }
             };
 
             _displayWindow.Show();

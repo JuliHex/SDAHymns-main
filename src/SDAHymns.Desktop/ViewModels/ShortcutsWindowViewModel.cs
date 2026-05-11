@@ -5,6 +5,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SDAHymns.Core.Services;
+using SDAHymns.Desktop.Services;
 
 namespace SDAHymns.Desktop.ViewModels;
 
@@ -38,19 +39,51 @@ public partial class ShortcutsWindowViewModel : ObservableObject
 
         foreach (var category in categories)
         {
+            var localizedCategory = GetLocalizedCategory(category);
             var shortcuts = _hotKeyManager.GetShortcutsByCategory(category)
                 .Select(s =>
                 {
-                    var display = new ShortcutDisplay(this, s.Action, s.Gesture.ToString(), s.DisplayName, s.Description ?? string.Empty);
+                    var actionName = GetLocalizedAction(s.Action);
+                    var description = GetLocalizedDescription(s.Action);
+                    
+                    var display = new ShortcutDisplay(this, s.Action, s.Gesture.ToString(), actionName, description);
                     _originalShortcuts[s.Action] = s.Gesture;
                     return display;
                 })
                 .ToList();
 
-            groups.Add(new ShortcutGroup(category, new ObservableCollection<ShortcutDisplay>(shortcuts)));
+            groups.Add(new ShortcutGroup(localizedCategory, new ObservableCollection<ShortcutDisplay>(shortcuts)));
         }
 
         ShortcutGroups = groups;
+    }
+
+    private string GetLocalizedCategory(string category)
+    {
+        var key = category switch
+        {
+            "Global" => "Shortcuts.Category.Global",
+            "Navigare" => "Shortcuts.Category.Navigation",
+            "Căutare" => "Shortcuts.Category.Search",
+            "Afișaj" => "Shortcuts.Category.Display",
+            _ => null
+        };
+
+        return key != null ? Services.LocalizationManager.Instance.GetString(key) : category;
+    }
+
+    private string GetLocalizedAction(string action)
+    {
+        var key = $"Shortcuts.Action.{action}";
+        var localized = Services.LocalizationManager.Instance.GetString(key);
+        return !string.IsNullOrEmpty(localized) ? localized : action;
+    }
+
+    private string GetLocalizedDescription(string action)
+    {
+        var key = $"Shortcuts.Desc.{action}";
+        var localized = Services.LocalizationManager.Instance.GetString(key);
+        return !string.IsNullOrEmpty(localized) ? localized : string.Empty;
     }
 
     public void StartListening(ShortcutDisplay shortcut)
@@ -148,7 +181,7 @@ public partial class ShortcutsWindowViewModel : ObservableObject
 
         // Build swap message
         var sb = new StringBuilder();
-        sb.AppendLine("The following shortcuts will be swapped when you save:");
+        sb.AppendLine(Services.LocalizationManager.Instance.GetString("Shortcuts.Status.WillBeSwapped"));
         sb.AppendLine();
 
         foreach (var group in duplicates)

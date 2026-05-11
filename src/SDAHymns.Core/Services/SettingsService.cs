@@ -39,7 +39,7 @@ public class SettingsService : ISettingsService
                 AudioAutoPlayDelay = 5,
                 GlobalVolume = 0.8f,
                 AutoAdvanceEnabled = false,
-                Language = "ro",
+                Language = "ro-RO",
                 Theme = "Dark",
                 IsAspectRatio43 = true,
                 CreatedAt = DateTime.UtcNow,
@@ -210,20 +210,27 @@ public class SettingsService : ISettingsService
     {
         var appSettings = await _context.AppSettings.FindAsync(1);
 
-        if (appSettings?.RemoteWidgetSettingsJson == null)
+        if (appSettings == null || string.IsNullOrWhiteSpace(appSettings.RemoteWidgetSettingsJson))
         {
-            // Return default settings
             return new RemoteWidgetSettings();
         }
 
         try
         {
             var settings = JsonSerializer.Deserialize<RemoteWidgetSettings>(appSettings.RemoteWidgetSettingsJson);
-            return settings ?? new RemoteWidgetSettings();
+            if (settings == null) return new RemoteWidgetSettings();
+
+            // Ensure lists have enough items
+            if (settings.QuickSlots == null) settings.QuickSlots = new List<int> { 0, 0, 0, 0 };
+            while (settings.QuickSlots.Count < 4) settings.QuickSlots.Add(0);
+            
+            if (settings.QuickSlotLabels == null) settings.QuickSlotLabels = new List<string> { "", "", "", "" };
+            while (settings.QuickSlotLabels.Count < 4) settings.QuickSlotLabels.Add("");
+
+            return settings;
         }
         catch
         {
-            // If deserialization fails, return default
             return new RemoteWidgetSettings();
         }
     }
@@ -242,7 +249,7 @@ public class SettingsService : ISettingsService
                 AudioAutoPlayDelay = 5,
                 GlobalVolume = 0.8f,
                 AutoAdvanceEnabled = false,
-                Language = "ro",
+                Language = "ro-RO",
                 Theme = "Dark",
                 IsAspectRatio43 = true,
                 CreatedAt = DateTime.UtcNow,

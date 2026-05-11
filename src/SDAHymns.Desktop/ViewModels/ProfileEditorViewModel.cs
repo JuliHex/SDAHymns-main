@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SDAHymns.Core.Data.Models;
 using SDAHymns.Core.Services;
+using SDAHymns.Desktop.Services;
 
 namespace SDAHymns.Desktop.ViewModels;
 
@@ -61,11 +62,11 @@ public partial class ProfileEditorViewModel : ObservableObject
         try
         {
             await _profileService.UpdateProfileAsync(SelectedProfile);
-            StatusMessage = $"Profile '{SelectedProfile.Name}' saved successfully";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Profile.Status.Saved"), SelectedProfile.Name);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error saving profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -76,8 +77,8 @@ public partial class ProfileEditorViewModel : ObservableObject
     {
         var newProfile = new DisplayProfile
         {
-            Name = "New Profile",
-            Description = "Custom profile",
+            Name = LocalizationManager.Instance.GetString("Profile.DefaultName"),
+            Description = LocalizationManager.Instance.GetString("Profile.DefaultDescription"),
             IsDefault = false,
             IsSystemProfile = false,
             CreatedAt = DateTime.UtcNow,
@@ -89,11 +90,11 @@ public partial class ProfileEditorViewModel : ObservableObject
             var created = await _profileService.CreateProfileAsync(newProfile);
             Profiles.Add(created);
             SelectedProfile = created;
-            StatusMessage = $"Profile '{created.Name}' created";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Profile.Status.Created"), created.Name);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error creating profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -108,11 +109,11 @@ public partial class ProfileEditorViewModel : ObservableObject
             await _profileService.DeleteProfileAsync(SelectedProfile.Id);
             Profiles.Remove(SelectedProfile);
             SelectedProfile = Profiles.FirstOrDefault();
-            StatusMessage = "Profile deleted successfully";
+            StatusMessage = LocalizationManager.Instance.GetString("Profile.Status.Deleted");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error deleting profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -131,15 +132,15 @@ public partial class ProfileEditorViewModel : ObservableObject
         {
             var duplicate = await _profileService.DuplicateProfileAsync(
                 SelectedProfile.Id,
-                $"{SelectedProfile.Name} (Copy)"
+                $"{SelectedProfile.Name} {LocalizationManager.Instance.GetString("Profile.CopySuffix")}"
             );
             Profiles.Add(duplicate);
             SelectedProfile = duplicate;
-            StatusMessage = $"Profile duplicated as '{duplicate.Name}'";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Profile.Status.Duplicated"), duplicate.Name);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error duplicating profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -159,7 +160,7 @@ public partial class ProfileEditorViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error exporting profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
             return null;
         }
     }
@@ -169,7 +170,7 @@ public partial class ProfileEditorViewModel : ObservableObject
     /// </summary>
     public void OnExportSuccess(string filePath)
     {
-        StatusMessage = $"Profile exported to {filePath}";
+        StatusMessage = string.Format(LocalizationManager.Instance.GetString("Profile.Status.Exported"), filePath);
     }
 
     [RelayCommand]
@@ -177,7 +178,7 @@ public partial class ProfileEditorViewModel : ObservableObject
     {
         // TODO: Implement file picker and import logic
         // For now, this is a placeholder
-        StatusMessage = "Import functionality coming soon";
+        StatusMessage = LocalizationManager.Instance.GetString("Profile.Status.ImportSoon");
         await Task.CompletedTask;
     }
 
@@ -196,12 +197,12 @@ public partial class ProfileEditorViewModel : ObservableObject
                 var index = Profiles.IndexOf(SelectedProfile);
                 Profiles[index] = fresh;
                 SelectedProfile = fresh;
-                StatusMessage = "Profile reset to saved state";
+                StatusMessage = LocalizationManager.Instance.GetString("Profile.Status.Reset");
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error resetting profile: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -214,7 +215,7 @@ public partial class ProfileEditorViewModel : ObservableObject
             return Task.CompletedTask;
 
         // TODO: Implement preview functionality (show in display window)
-        StatusMessage = "Preview functionality coming soon";
+        StatusMessage = LocalizationManager.Instance.GetString("Profile.Status.PreviewSoon");
         return Task.CompletedTask;
     }
 

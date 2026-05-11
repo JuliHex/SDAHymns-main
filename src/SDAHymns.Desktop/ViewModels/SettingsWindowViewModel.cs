@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using SDAHymns.Core.Data.Models;
 using SDAHymns.Core.Models;
 using SDAHymns.Core.Services;
+using SDAHymns.Desktop.Services;
 
 namespace SDAHymns.Desktop.ViewModels;
 
@@ -17,13 +18,21 @@ public partial class SettingsWindowViewModel : ViewModelBase
 
     // General Settings
     [ObservableProperty]
-    private string _selectedLanguage = "ro";
+    private string _selectedLanguage = "ro-RO";
+
+    partial void OnSelectedLanguageChanged(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            LocalizationManager.Instance.SetLanguage(value);
+        }
+    }
 
     [ObservableProperty]
     private string _selectedTheme = "Dark";
 
     [ObservableProperty]
-    private ObservableCollection<string> _availableLanguages = new() { "ro", "en" };
+    private ObservableCollection<string> _availableLanguages = new() { "ro-RO", "en-US" };
 
     [ObservableProperty]
     private ObservableCollection<string> _availableThemes = new() { "Light", "Dark", "System" };
@@ -54,7 +63,7 @@ public partial class SettingsWindowViewModel : ViewModelBase
     private ObservableCollection<CategoryPackage> _availablePackages = new();
 
     [ObservableProperty]
-    private string _statusMessage = "Ready";
+    private string _statusMessage = LocalizationManager.Instance.GetString("Status.Ready");
 
     [ObservableProperty]
     private bool _isDownloading = false;
@@ -101,7 +110,13 @@ public partial class SettingsWindowViewModel : ViewModelBase
             GlobalVolume = volume * 100; // Convert 0-1 to 0-100
 
             // General Settings
-            SelectedLanguage = await _settingsService.GetLanguageAsync();
+            var lang = await _settingsService.GetLanguageAsync();
+            SelectedLanguage = lang switch
+            {
+                "ro" => "ro-RO",
+                "en" => "en-US",
+                _ => lang
+            };
             SelectedTheme = await _settingsService.GetThemeAsync();
 
             // Display Settings
@@ -140,11 +155,11 @@ public partial class SettingsWindowViewModel : ViewModelBase
             // Load available packages
             await RefreshAvailablePackagesAsync();
 
-            StatusMessage = "Settings loaded";
+            StatusMessage = LocalizationManager.Instance.GetString("Status.SettingsLoaded");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading settings: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -172,11 +187,11 @@ public partial class SettingsWindowViewModel : ViewModelBase
                 _audioPlayer.SetOutputDevice(SelectedAudioDevice.DeviceNumber);
             }
 
-            StatusMessage = "Settings saved successfully";
+            StatusMessage = LocalizationManager.Instance.GetString("Status.SettingsSaved");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error saving settings: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -193,11 +208,11 @@ public partial class SettingsWindowViewModel : ViewModelBase
             }
 
             TotalLibrarySize = await _libraryService.GetTotalLibrarySizeAsync();
-            StatusMessage = $"Found {packages.Count} installed packages";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.PackagesFound"), packages.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading installed packages: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -213,11 +228,11 @@ public partial class SettingsWindowViewModel : ViewModelBase
                 AvailablePackages.Add(package);
             }
 
-            StatusMessage = $"Found {packages.Count} available packages";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.PackagesFound"), packages.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error loading available packages: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 
@@ -230,7 +245,7 @@ public partial class SettingsWindowViewModel : ViewModelBase
         try
         {
             IsDownloading = true;
-            StatusMessage = $"Downloading {categorySlug}...";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Downloading"), categorySlug);
 
             var progress = new Progress<DownloadProgress>(p =>
             {
@@ -240,12 +255,12 @@ public partial class SettingsWindowViewModel : ViewModelBase
 
             await _downloadService.DownloadCategoryAsync(categorySlug, progress);
 
-            StatusMessage = $"Downloaded {categorySlug} successfully";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Downloaded"), categorySlug);
             await RefreshInstalledPackagesAsync();
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Download failed: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.DownloadFailed"), ex.Message);
         }
         finally
         {
@@ -263,17 +278,17 @@ public partial class SettingsWindowViewModel : ViewModelBase
             var success = await _libraryService.DeleteCategoryAsync(categorySlug);
             if (success)
             {
-                StatusMessage = $"Deleted {categorySlug}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Text.Delete"), categorySlug);
                 await RefreshInstalledPackagesAsync();
             }
             else
             {
-                StatusMessage = $"Failed to delete {categorySlug}";
+                StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), categorySlug);
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error deleting category: {ex.Message}";
+            StatusMessage = $"Eroare la ștergerea categoriei: {ex.Message}";
         }
     }
 
@@ -282,7 +297,7 @@ public partial class SettingsWindowViewModel : ViewModelBase
     {
         try
         {
-            StatusMessage = $"Verifying {categorySlug}...";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Verifying"), categorySlug);
 
             var progress = new Progress<int>(p =>
             {
@@ -292,12 +307,12 @@ public partial class SettingsWindowViewModel : ViewModelBase
             var isValid = await _downloadService.VerifyCategoryAsync(categorySlug, progress);
 
             StatusMessage = isValid
-                ? $"{categorySlug} verified successfully"
-                : $"{categorySlug} has issues";
+                ? string.Format(LocalizationManager.Instance.GetString("Status.Verified"), categorySlug)
+                : string.Format(LocalizationManager.Instance.GetString("Status.VerificationFailed"), categorySlug);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Verification failed: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
         finally
         {
@@ -310,19 +325,19 @@ public partial class SettingsWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(newPath))
         {
-            StatusMessage = "Invalid path selected";
+            StatusMessage = "Cale selectată nevalidă";
             return;
         }
 
         try
         {
-            StatusMessage = "Migrating library...";
+            StatusMessage = LocalizationManager.Instance.GetString("Status.Migrating");
             IsDownloading = true; // Reuse the downloading flag for progress
 
             var progress = new Progress<int>(p =>
             {
                 DownloadProgress = p;
-                DownloadStatusText = $"Migrating files... {p}%";
+                DownloadStatusText = $"Se migrează fișierele... {p}%";
             });
 
             var success = await _libraryService.MigrateLibraryAsync(newPath, progress);
@@ -330,17 +345,17 @@ public partial class SettingsWindowViewModel : ViewModelBase
             if (success)
             {
                 AudioLibraryPath = newPath;
-                StatusMessage = "Library migrated successfully";
+                StatusMessage = LocalizationManager.Instance.GetString("Status.Migrated");
                 await RefreshInstalledPackagesAsync();
             }
             else
             {
-                StatusMessage = "Migration failed";
+                StatusMessage = LocalizationManager.Instance.GetString("Status.MigrationFailed");
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Migration error: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
         finally
         {
@@ -355,16 +370,16 @@ public partial class SettingsWindowViewModel : ViewModelBase
     {
         try
         {
-            StatusMessage = "Scanning library health...";
+            StatusMessage = LocalizationManager.Instance.GetString("Status.Scanning");
             var health = await _libraryService.ScanLibraryHealthAsync();
 
             StatusMessage = health.IsHealthy
-                ? $"Library is healthy ({health.TotalFiles} files)"
-                : $"Found {health.CorruptedFiles} corrupted files, {health.MissingMetadata} missing metadata";
+                ? string.Format(LocalizationManager.Instance.GetString("Status.Healthy"), health.TotalFiles)
+                : string.Format(LocalizationManager.Instance.GetString("Status.Unhealthy"), health.CorruptedFiles, health.MissingMetadata);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Health scan failed: {ex.Message}";
+            StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.Error"), ex.Message);
         }
     }
 

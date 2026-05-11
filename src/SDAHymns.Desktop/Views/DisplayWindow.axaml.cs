@@ -142,25 +142,27 @@ public partial class DisplayWindow : Window
             }
         }
 
-        // Apply to title
-        if (HymnTitleText != null)
-        {
-            HymnTitleText.FontFamily = new FontFamily(profile.FontFamily);
-            HymnTitleText.FontSize = profile.TitleFontSize;
-            HymnTitleText.Foreground = new SolidColorBrush(Color.Parse(profile.TitleColor));
-            HymnTitleText.FontWeight = ParseFontWeight(profile.FontWeight);
-            HymnTitleText.TextAlignment = ParseTextAlignment(profile.TextAlignment);
-            HymnTitleText.IsVisible = profile.ShowHymnTitle;
-        }
-
-        // Apply to verse label
-        if (VerseLabelText != null)
+        // Margins and alignment apply to the content panel
+        if (ContentPanel != null)
         {
             VerseLabelText.FontFamily = new FontFamily(profile.FontFamily);
             VerseLabelText.FontSize = profile.LabelFontSize;
-            VerseLabelText.Foreground = new SolidColorBrush(Color.Parse(profile.LabelColor));
             VerseLabelText.FontWeight = ParseFontWeight(profile.FontWeight);
             VerseLabelText.IsVisible = profile.ShowVerseNumbers;
+
+            if (this.FindControl<TextBlock>("ChorusLabelText") is TextBlock chorusLabel)
+            {
+                chorusLabel.FontFamily = new FontFamily(profile.FontFamily);
+                chorusLabel.FontSize = profile.LabelFontSize;
+                chorusLabel.FontWeight = ParseFontWeight(profile.FontWeight);
+            }
+            
+            try 
+            {
+                // Only apply if not using the special gold color from VM
+                // Actually, VM color should probably take precedence if it's set to gold
+            }
+            catch { }
         }
 
         // Apply to verse content
@@ -168,18 +170,23 @@ public partial class DisplayWindow : Window
         {
             VerseContentText.FontFamily = new FontFamily(profile.FontFamily);
             VerseContentText.FontSize = profile.VerseFontSize;
-            VerseContentText.Foreground = new SolidColorBrush(Color.Parse(profile.TextColor));
             VerseContentText.FontWeight = ParseFontWeight(profile.FontWeight);
             VerseContentText.TextAlignment = ParseTextAlignment(profile.TextAlignment);
             VerseContentText.LineHeight = profile.LineHeight * profile.VerseFontSize;
-
-            // Apply text effects (shadow/outline)
-            if (profile.EnableTextShadow)
+            
+            try 
             {
-                // Note: Avalonia doesn't have DropShadowEffect like WPF
-                // Shadow would need to be implemented differently (e.g., using layered TextBlocks)
-                // For now, this is a placeholder
+                VerseContentText.Foreground = new SolidColorBrush(Color.Parse(profile.TextColor));
+                if (this.FindControl<TextBlock>("ChorusContentText") is TextBlock chorusContent)
+                {
+                    chorusContent.FontFamily = new FontFamily(profile.FontFamily);
+                    chorusContent.FontSize = profile.VerseFontSize;
+                    chorusContent.FontWeight = ParseFontWeight(profile.FontWeight);
+                    chorusContent.Foreground = VerseContentText.Foreground;
+                    chorusContent.LineHeight = VerseContentText.LineHeight;
+                }
             }
+            catch { VerseContentText.Foreground = Brushes.White; }
         }
 
         // Apply margins to content panel

@@ -38,7 +38,7 @@ SDAHymns.sln
 ├── docs/
 ├── .gitignore
 ├── README.md
-└── CLAUDE.md
+└── GEMINI.md
 ```
 
 ## Project Details

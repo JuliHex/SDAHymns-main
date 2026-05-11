@@ -4,7 +4,7 @@ A modern, cross-platform desktop application for displaying hymns in church serv
 
 ## Overview
 
-SDAHymns is a complete rewrite of a legacy hymn display application, designed to improve user experience, support streaming workflows, and enable automation. The application displays hymns on projectors and supports customizable styling for OBS/streaming integration.
+SDAHymns is a complete rewrite of a legacy hymn display application, based on the work from the [ThorSPB/SDAHymns](https://github.com/ThorSPB/SDAHymns) repository. It is designed to improve user experience, support streaming workflows, and enable automation. The application displays hymns on projectors and supports customizable styling for OBS/streaming integration.
 
 ## Features
 
@@ -101,7 +101,7 @@ SDAHymns/
 │   └── legacy/                 # Legacy app (reference only)
 ├── docs/
 │   └── spec/                   # Specification files
-├── CLAUDE.md                   # Developer guidance for Claude Code
+├── GEMINI.md                   # Developer guidance for Gemini/Antigravity
 ├── README.md                   # This file
 └── Directory.Build.props       # Common MSBuild properties
 ```
@@ -175,7 +175,7 @@ Contributions are welcome! This project aims for industry-standard testing cover
 
 ## Documentation
 
-- **[CLAUDE.md](CLAUDE.md)** - Comprehensive developer guide and architecture documentation
+- **[GEMINI.md](GEMINI.md)** - Comprehensive developer guide and architecture documentation
 - **[Spec Context](docs/spec/_context.md)** - Current project status and spec tracking
 - **[Spec 001](docs/spec/001-project-structure.md)** - Project structure specification
 

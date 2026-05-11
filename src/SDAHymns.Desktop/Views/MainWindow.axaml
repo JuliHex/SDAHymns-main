@@ -3,10 +3,11 @@
         xmlns:vm="using:SDAHymns.Desktop.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="using:SDAHymns.Desktop.Models"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="SDAHymns.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="SDA Hymns - Display Test"
+        Title="{DynamicResource Main.WindowTitle}"
         Width="800" Height="600"
         Background="Black">
 
@@ -27,7 +28,7 @@
                     <TextBlock Text="🎉"
                                VerticalAlignment="Center"
                                FontSize="18"/>
-                    <TextBlock Text="New version available!"
+                    <TextBlock Text="{DynamicResource Update.Available}"
                                VerticalAlignment="Center"
                                FontWeight="Bold"
                                FontSize="14"
@@ -48,7 +49,7 @@
                              VerticalAlignment="Center"/>
 
                 <Button Grid.Column="2"
-                        Content="Update Now"
+                        Content="{DynamicResource Update.Now}"
                         Command="{Binding UpdateNowCommand}"
                         IsEnabled="{Binding !IsDownloadingUpdate}"
                         Background="#1B5E20"
@@ -58,7 +59,7 @@
                         FontWeight="Bold"/>
 
                 <Button Grid.Column="3"
-                        Content="Later"
+                        Content="{DynamicResource Update.Later}"
                         Command="{Binding DismissUpdateCommand}"
                         IsEnabled="{Binding !IsDownloadingUpdate}"
                         Background="#00000044"
@@ -77,7 +78,7 @@
                 <TextBox Grid.Column="0"
                          x:Name="SearchTextBox"
                          Text="{Binding SearchQuery}"
-                         Watermark="Search hymns by number or title... (Ctrl+F to focus)"
+                         Watermark="{DynamicResource Main.SearchPlaceholder}"
                          FontSize="16"
                          Background="#2A2A2A"
                          Foreground="White"
@@ -86,19 +87,18 @@
 
                 <ComboBox Grid.Column="1"
                           Width="150"
-                          SelectedItem="{Binding SelectedCategory}"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategoryItem}"
                           VerticalAlignment="Center"
                           Background="#2A2A2A"
                           Foreground="White"
                           BorderBrush="#444444"
                           Margin="0,0,10,0">
-                    <ComboBox.Items>
-                        <x:String>crestine</x:String>
-                        <x:String>companioni</x:String>
-                        <x:String>exploratori</x:String>
-                        <x:String>licurici</x:String>
-                        <x:String>tineret</x:String>
-                    </ComboBox.Items>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:LocalizedCategory">
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
                 </ComboBox>
 
                 <ComboBox Grid.Column="2"
@@ -110,7 +110,7 @@
                           Foreground="White"
                           BorderBrush="#444444"
                           Margin="0,0,5,0"
-                          ToolTip.Tip="Display Profile">
+                          ToolTip.Tip="{DynamicResource Profile.Title}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"/>
@@ -121,7 +121,7 @@
                 <Button Grid.Column="3"
                         Content="⚙"
                         Click="EditProfiles_Click"
-                        ToolTip.Tip="Edit Profiles"
+                        ToolTip.Tip="{DynamicResource Profile.Edit}"
                         Width="40"
                         Height="35"
                         FontSize="16"
@@ -133,7 +133,7 @@
                 <Button Grid.Column="4"
                         Content="{Binding FavoriteIcon}"
                         Command="{Binding ToggleFavoriteCommand}"
-                        ToolTip.Tip="Toggle Favorite (Ctrl+D)"
+                        ToolTip.Tip="{DynamicResource Main.ToggleFavorite}"
                         Width="50"
                         Height="35"
                         FontSize="18"
@@ -152,21 +152,25 @@
                               Foreground="White"
                               BorderBrush="#444444"/>
 
-                <Button Grid.Column="6"
-                        Content="⚙ Settings"
-                        Click="OpenSettings_Click"
-                        ToolTip.Tip="Open Settings (Ctrl+,)"
-                        Width="110"
-                        Height="35"
-                        Margin="0,0,10,0"
-                        Background="#2A2A2A"
-                        Foreground="White"
-                        BorderBrush="#444444"/>
+                 <Button Grid.Column="6"
+                         ToolTip.Tip="{DynamicResource Settings.Open}"
+                         Width="110"
+                         Height="35"
+                         Margin="0,0,10,0"
+                         Background="#2A2A2A"
+                         Foreground="White"
+                         BorderBrush="#444444"
+                         Click="OpenSettings_Click">
+                     <StackPanel Orientation="Horizontal" Spacing="5">
+                         <TextBlock Text="⚙"/>
+                         <TextBlock Text="{DynamicResource Text.Settings}"/>
+                     </StackPanel>
+                 </Button>
 
                 <Button Grid.Column="7"
                         Content="{Binding DisplayWindowButtonLabel}"
                         Click="ToggleDisplayWindow_Click"
-                        ToolTip.Tip="Toggle Display Window (F5)"
+                        ToolTip.Tip="{DynamicResource Main.ToggleDisplay}"
                         Width="140"
                         Height="35"
                         Background="#0078D4"
@@ -182,7 +186,7 @@
                 BorderThickness="0,0,0,1"
                 Padding="15,10">
             <StackPanel>
-                <TextBlock Text="Recent:"
+                <TextBlock Text="{DynamicResource Main.Recent}"
                            Foreground="#888888"
                            FontSize="12"
                            Margin="0,0,0,5"/>
@@ -226,9 +230,12 @@
                             <Run Text="{Binding Title}"/>
                         </TextBlock>
                         <TextBlock Grid.Column="1"
-                                   Text="{Binding VerseCount, StringFormat='{}{0} verses'}"
                                    Foreground="#888888"
-                                   Margin="10,0,5,0"/>
+                                   Margin="10,0,5,0">
+                            <Run Text="{Binding VerseCount}"/>
+                            <Run Text=" "/>
+                            <Run Text="{DynamicResource Main.Verses}"/>
+                        </TextBlock>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -246,10 +253,11 @@
                            FontWeight="Bold"
                            Foreground="White"/>
                 <TextBlock Foreground="#888888" FontSize="14">
-                    <Run Text="{Binding CurrentHymn.Category.Name}"/>
+                    <Run Text="{Binding LocalizedCategoryName}"/>
                     <Run Text=" • "/>
                     <Run Text="{Binding Verses.Count}"/>
-                    <Run Text=" verses"/>
+                    <Run Text=" "/>
+                    <Run Text="{DynamicResource Main.Verses}"/>
                 </TextBlock>
             </StackPanel>
         </Border>
@@ -263,24 +271,49 @@
                     <!-- Verse Content -->
                     <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly">
                         <StackPanel VerticalAlignment="Center"
-                                   HorizontalAlignment="Left"
-                                   Width="1000"
-                                   Margin="80,50,80,50">
-                            <!-- Verse Label (e.g., "1.", "Refren") -->
-                            <TextBlock Text="{Binding CurrentVerseLabel}"
-                                      FontSize="28"
-                                      FontWeight="SemiBold"
-                                      HorizontalAlignment="Left"
-                                      Margin="0,0,0,30"
-                                      Foreground="#CCCCCC"/>
-
-                            <!-- Verse Content -->
+                                    HorizontalAlignment="Left"
+                                    Margin="80,50,80,50">
+                            <!-- Chorus Style -->
+                            <StackPanel IsVisible="{Binding IsChorus}" HorizontalAlignment="Left" Margin="0,0,0,20">
+                                <TextBlock Text="{DynamicResource Text.Chorus}"
+                                          FontSize="48"
+                                          FontWeight="SemiBold"
+                                          Foreground="#FFD700"/>
+                            </StackPanel>
                             <TextBlock Text="{Binding CurrentVerseContent}"
-                                      FontSize="48"
-                                      TextWrapping="Wrap"
-                                      TextAlignment="Left"
-                                      LineHeight="65"
-                                      Foreground="White"/>
+                                       IsVisible="{Binding IsChorus}"
+                                       FontSize="48"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Left"
+                                       LineHeight="65"
+                                       Foreground="White"/>
+
+                            <!-- Verse Style -->
+                            <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsVerseNumber}">
+                                <TextBlock Grid.Column="0"
+                                          Text="{Binding CurrentVerseLabel}"
+                                          FontSize="48"
+                                          FontWeight="SemiBold"
+                                          VerticalAlignment="Top"
+                                          Margin="0,0,15,0"
+                                          Foreground="#FFD700"/>
+                                <TextBlock Grid.Column="1"
+                                          Text="{Binding CurrentVerseContent}"
+                                          FontSize="48"
+                                          TextWrapping="Wrap"
+                                          TextAlignment="Left"
+                                          LineHeight="65"
+                                          Foreground="White"/>
+                            </Grid>
+                            
+                            <!-- Fallback -->
+                            <TextBlock Text="{Binding CurrentVerseContent}"
+                                       IsVisible="{Binding IsUnlabeledVerse}"
+                                       FontSize="48"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       LineHeight="65"
+                                       Foreground="White"/>
                         </StackPanel>
                     </Viewbox>
 
@@ -307,9 +340,9 @@
                 Padding="20">
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center">
-                <Button Content="◀ Previous"
+                <Button Content="{DynamicResource Remote.Previous}"
                         Command="{Binding PreviousVerseCommand}"
-                        ToolTip.Tip="Previous Verse (←, PageUp, Shift+Space)"
+                        ToolTip.Tip="{DynamicResource Tooltip.Previous}"
                         Width="140"
                         Height="45"
                         FontSize="16"
@@ -318,9 +351,9 @@
                         Foreground="White"
                         BorderBrush="#444444"/>
 
-                <Button Content="Next ▶"
+                <Button Content="{DynamicResource Remote.Next}"
                         Command="{Binding NextVerseCommand}"
-                        ToolTip.Tip="Next Verse (→, PageDown, Space)"
+                        ToolTip.Tip="{DynamicResource Tooltip.Next}"
                         Width="140"
                         Height="45"
                         FontSize="16"
@@ -415,9 +448,9 @@
 
                 <!-- Record Timings Button -->
                 <Button Grid.Column="7"
-                        Content="🎯 Record"
+                        Content="{DynamicResource Recorder.TitleShort}"
                         Click="RecordTimings_Click"
-                        ToolTip.Tip="Record verse timings"
+                        ToolTip.Tip="{DynamicResource Recorder.Tip}"
                         Height="40"
                         Padding="10,0"
                         Background="#2E7D32"
@@ -438,7 +471,7 @@
                           FontSize="14"
                           Foreground="#888888"/>
                 <TextBlock Grid.Column="1"
-                          Text="Press F1 for keyboard shortcuts"
+                          Text="{DynamicResource Main.PressF1}"
                           FontSize="12"
                           Foreground="#666666"
                           FontStyle="Italic"/>

@@ -3,15 +3,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:SDAHymns.Desktop.ViewModels"
+        xmlns:models="using:SDAHymns.Desktop.Models"
         mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="520"
         x:Class="SDAHymns.Desktop.Views.RemoteWidget"
         x:DataType="vm:RemoteWidgetViewModel"
-        Title="SDAHymns Remote"
-        Width="280"
-        Height="520"
+        Title="{DynamicResource Remote.Title}"
+        Width="320"
+        Height="620"
         CanResize="False"
         SystemDecorations="None"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="None"
         Background="Transparent"
         Topmost="{Binding IsAlwaysOnTop}">
 
@@ -19,7 +20,8 @@
         <Style Selector="Border.remote-container">
             <Setter Property="Background" Value="#1E1E2E"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="BoxShadow" Value="0 4 20 0 #3C000000"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#3E3E52"/>
         </Style>
 
         <Style Selector="Border.custom-titlebar">
@@ -92,6 +94,16 @@
         <Style Selector="TextBox.hymn-input:focus">
             <Setter Property="BorderBrush" Value="#6366F1"/>
             <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Background" Value="#8B5CF6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
         <Style Selector="Button.primary">
@@ -178,21 +190,21 @@
             <!-- Custom Title Bar -->
             <Border Classes="custom-titlebar" DockPanel.Dock="Top" Name="TitleBar" PointerPressed="TitleBar_PointerPressed">
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" Classes="title" Text="SDAHymns Remote"/>
-
+                    <TextBlock Grid.Column="0" Classes="title" Text="{DynamicResource Remote.Title}"/>
+ 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                        <Button Classes="titlebar-button" Content="≡" ToolTip.Tip="Menu">
+                        <Button Classes="titlebar-button" Content="≡" ToolTip.Tip="{DynamicResource Remote.Menu}">
                             <Button.Flyout>
                                 <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                    <MenuItem Header="Advanced Mode" Click="AdvancedMode_Click"/>
-                                    <MenuItem Header="Toggle Number Pad" Command="{Binding $parent[Window].((vm:RemoteWidgetViewModel)DataContext).ToggleNumberPadCommand}"/>
+                                    <MenuItem Header="{DynamicResource Remote.AdvancedMode}" Click="AdvancedMode_Click"/>
+                                    <MenuItem Header="{DynamicResource Remote.ToggleNumPad}" Command="{Binding $parent[Window].((vm:RemoteWidgetViewModel)DataContext).ToggleNumberPadCommand}"/>
                                     <Separator/>
-                                    <MenuItem Header="About SDAHymns"/>
+                                    <MenuItem Header="{DynamicResource Remote.About}"/>
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>
-                        <Button Classes="titlebar-button" Content="_" Click="Minimize_Click" ToolTip.Tip="Minimize"/>
-                        <Button Classes="titlebar-button close" Content="×" Click="Close_Click" ToolTip.Tip="Close"/>
+                        <Button Classes="titlebar-button" Content="_" Click="Minimize_Click" ToolTip.Tip="{DynamicResource Remote.Minimize}"/>
+                        <Button Classes="titlebar-button close" Content="×" Click="Close_Click" ToolTip.Tip="{DynamicResource Text.Close}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -202,12 +214,14 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
                     <Button Classes="icon-button" Content="📌" Command="{Binding ToggleAlwaysOnTopCommand}"
                             Classes.active="{Binding IsAlwaysOnTop}"
-                            ToolTip.Tip="Always on Top"/>
+                            ToolTip.Tip="{DynamicResource Remote.AlwaysOnTop}"/>
                     <Button Classes="icon-button" Content="🔒" Command="{Binding ToggleLockPositionCommand}"
                             Classes.active="{Binding IsPositionLocked}"
-                            ToolTip.Tip="Lock Position"/>
+                            ToolTip.Tip="{DynamicResource Remote.LockPosition}"/>
+                    <Button Classes="icon-button" Content="📺" Command="{Binding TogglePresenterViewCommand}"
+                            ToolTip.Tip="{DynamicResource Remote.PresenterView}"/>
                     <Button Classes="icon-button" Content="⚙" Click="AdvancedMode_Click"
-                            ToolTip.Tip="Advanced Mode"/>
+                            ToolTip.Tip="{DynamicResource Remote.AdvancedMode}"/>
                 </StackPanel>
             </Border>
 
@@ -217,36 +231,44 @@
                     <!-- Current Hymn Display -->
                     <Border Classes="status-panel">
                         <StackPanel>
-                            <TextBlock Classes="status-title" Text="{Binding CurrentHymnDisplay}"/>
-                            <TextBlock Classes="status-subtitle" Text="{Binding VerseIndicator}"/>
+                            <TextBlock Text="{Binding CurrentHymnDisplay}" 
+                                       Foreground="White" 
+                                       FontSize="18" 
+                                       FontWeight="Bold" 
+                                       TextWrapping="Wrap" 
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"/>
+                            <TextBlock Text="{Binding VerseIndicator}" 
+                                       Foreground="#9CA3AF" 
+                                       FontSize="14" 
+                                       HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Category Selection -->
                     <StackPanel>
-                        <TextBlock Text="Category:" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBlock Text="{DynamicResource Remote.Category}" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
                         <ComboBox HorizontalAlignment="Stretch"
-                                  SelectedItem="{Binding SelectedCategory}"
+                                  ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding SelectedCategoryItem}"
                                   Background="#2A2A3C"
                                   Foreground="White"
                                   BorderBrush="#3E3E52"
                                   Margin="0,0,0,8">
-                            <ComboBox.Items>
-                                <x:String>crestine</x:String>
-                                <x:String>companioni</x:String>
-                                <x:String>exploratori</x:String>
-                                <x:String>licurici</x:String>
-                                <x:String>tineret</x:String>
-                            </ComboBox.Items>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:LocalizedCategory">
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </ComboBox>
                     </StackPanel>
 
                     <!-- Hymn Input -->
                     <StackPanel>
-                        <TextBlock Text="Load Hymn:" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBlock Text="{DynamicResource Remote.LoadHymn}" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
                         <TextBox Classes="hymn-input"
                                  Text="{Binding HymnNumberInput}"
-                                 Watermark="Enter hymn number..."
+                                 Watermark="{DynamicResource Remote.EnterNumber}"
                                  Name="HymnInput">
                             <TextBox.KeyBindings>
                                 <KeyBinding Gesture="Enter" Command="{Binding LoadHymnCommand}"/>
@@ -279,19 +301,58 @@
 
                     <!-- Action Buttons -->
                     <StackPanel Spacing="8">
-                        <Button Classes="primary" Content="SHOW" Command="{Binding LoadHymnCommand}" HorizontalAlignment="Stretch"/>
-                        <Button Classes="secondary" Content="BLANK" Command="{Binding BlankDisplayCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Classes="primary" Content="{DynamicResource Remote.Show}" Command="{Binding LoadHymnCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Classes="secondary" Content="{DynamicResource Remote.BlackScreenBtn}" Command="{Binding BlankDisplayCommand}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Quick Slots -->
+                    <StackPanel Spacing="5" Margin="0,5">
+                        <TextBlock Text="{DynamicResource Remote.QuickSlotsTitle}" FontSize="10" Foreground="#9CA3AF" HorizontalAlignment="Center"/>
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="4">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBox Text="{Binding Slot1Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot1Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="1" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="1" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBox Text="{Binding Slot2Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot2Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="2" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="2" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBox Text="{Binding Slot3Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot3Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="3" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="3" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Spacing="2">
+                                <TextBox Text="{Binding Slot4Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot4Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="4" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="4" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <!-- Verse Navigation -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                        <Button Grid.Column="0" Classes="secondary" Content="▲ Prev" Command="{Binding PreviousVerseCommand}"/>
-                        <Button Grid.Column="1" Classes="secondary" Content="▼ Next" Command="{Binding NextVerseCommand}"/>
+                        <Button Grid.Column="0" Classes="secondary" Content="{DynamicResource Remote.Previous}" Command="{Binding PreviousVerseCommand}"/>
+                        <Button Grid.Column="1" Classes="secondary" Content="{DynamicResource Remote.Next}" Command="{Binding NextVerseCommand}"/>
                     </Grid>
 
                     <!-- Audio Control -->
                     <Button Classes="primary"
-                            Content="▶ Play Audio"
+                            Content="{DynamicResource Remote.PlayAudio}"
                             Command="{Binding ToggleAudioCommand}"
                             IsVisible="{Binding IsAudioAvailable}"
                             HorizontalAlignment="Stretch"/>

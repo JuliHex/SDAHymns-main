@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
         x:Class="SDAHymns.Desktop.Views.ProfileEditorWindow"
         x:DataType="vm:ProfileEditorViewModel"
-        Title="Display Profile Editor"
+        Title="{DynamicResource Profile.EditorTitle}"
         Width="1000" Height="700"
         Background="#0D0D0D">
 
@@ -27,7 +27,7 @@
                         BorderBrush="#333333"
                         BorderThickness="0,0,0,1"
                         Padding="20,15">
-                    <TextBlock Text="Profiles"
+                    <TextBlock Text="{DynamicResource Profile.ListTitle}"
                                FontSize="20"
                                FontWeight="Bold"
                                Foreground="White"/>
@@ -53,7 +53,7 @@
                                                    Foreground="#888888"
                                                    TextWrapping="Wrap"
                                                    Margin="0,4,0,0"/>
-                                        <TextBlock Text="(System Profile)"
+                                        <TextBlock Text="{DynamicResource Profile.SystemProfile}"
                                                    FontSize="10"
                                                    Foreground="#666666"
                                                    Margin="0,4,0,0"
@@ -72,19 +72,19 @@
                         BorderThickness="0,1,0,0"
                         Padding="15">
                     <StackPanel Spacing="8">
-                        <Button Content="+ New Profile"
+                        <Button Content="{DynamicResource Profile.New}"
                                 Command="{Binding CreateProfileCommand}"
                                 HorizontalAlignment="Stretch"
                                 Background="#0078D4"
                                 Foreground="White"
                                 Padding="12,8"/>
-                        <Button Content="Duplicate"
+                        <Button Content="{DynamicResource Profile.Duplicate}"
                                 Command="{Binding DuplicateProfileCommand}"
                                 HorizontalAlignment="Stretch"
                                 Background="#2A2A2A"
                                 Foreground="White"
                                 Padding="12,8"/>
-                        <Button Content="Delete"
+                        <Button Content="{DynamicResource Text.Delete}"
                                 Command="{Binding DeleteProfileCommand}"
                                 HorizontalAlignment="Stretch"
                                 Background="#D32F2F"
@@ -105,25 +105,25 @@
 
                     <!-- Profile Info Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Profile Information"
+                        <TextBlock Text="{DynamicResource Profile.Info}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Profile Name" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Profile.NameLabel}" FontSize="12" Foreground="#CCCCCC"/>
                             <TextBox Text="{Binding SelectedProfile.Name}"
-                                     Watermark="Enter profile name..."
+                                     Watermark="{DynamicResource Profile.NamePlaceholder}"
                                      Background="#2A2A2A"
                                      Foreground="White"
                                      BorderBrush="#444444"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Description" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Text.Description}" FontSize="12" Foreground="#CCCCCC"/>
                             <TextBox Text="{Binding SelectedProfile.Description}"
-                                     Watermark="Enter description..."
+                                     Watermark="{DynamicResource Profile.DescriptionPlaceholder}"
                                      Background="#2A2A2A"
                                      Foreground="White"
                                      BorderBrush="#444444"
@@ -135,14 +135,14 @@
 
                     <!-- Typography Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Typography"
+                        <TextBlock Text="{DynamicResource Profile.Typography}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Font Family" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Profile.FontFamily}" FontSize="12" Foreground="#CCCCCC"/>
                             <ComboBox SelectedItem="{Binding SelectedProfile.FontFamily}"
                                       Background="#2A2A2A"
                                       Foreground="White"
@@ -158,9 +158,9 @@
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*,10,*,10,*" RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Title Size" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Verse Size" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBlock Grid.Column="4" Grid.Row="0" Text="Label Size" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.TitleSize}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.VerseSize}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="4" Grid.Row="0" Text="{DynamicResource Profile.LabelSize}" FontSize="12" Foreground="#CCCCCC"/>
 
                             <NumericUpDown Grid.Column="0" Grid.Row="1"
                                           Value="{Binding SelectedProfile.TitleFontSize}"
@@ -189,20 +189,20 @@
                         </Grid>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Font Weight" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Profile.FontWeight}" FontSize="12" Foreground="#CCCCCC"/>
                             <ComboBox SelectedItem="{Binding SelectedProfile.FontWeight}"
                                       Background="#2A2A2A"
                                       Foreground="White"
                                       BorderBrush="#444444">
-                                <ComboBoxItem Content="Normal"/>
-                                <ComboBoxItem Content="SemiBold"/>
-                                <ComboBoxItem Content="Bold"/>
+                                <ComboBoxItem Content="{DynamicResource Text.Normal}"/>
+                                <ComboBoxItem Content="{DynamicResource Text.SemiBold}"/>
+                                <ComboBoxItem Content="{DynamicResource Text.Bold}"/>
                             </ComboBox>
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*,10,*" RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Line Height" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Letter Spacing" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.LineHeight}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.LetterSpacing}" FontSize="12" Foreground="#CCCCCC"/>
 
                             <NumericUpDown Grid.Column="0" Grid.Row="1"
                                           Value="{Binding SelectedProfile.LineHeight}"
@@ -227,46 +227,46 @@
 
                     <!-- Colors Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Colors"
+                        <TextBlock Text="{DynamicResource Profile.Colors}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
                         <Grid ColumnDefinitions="*,10,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Background Color" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBox Grid.Column="0" Grid.Row="1"
-                                    Text="{Binding SelectedProfile.BackgroundColor}"
-                                    Watermark="#000000"
-                                    Background="#2A2A2A"
-                                    Foreground="White"
-                                    BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Text Color" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBox Grid.Column="2" Grid.Row="1"
-                                    Text="{Binding SelectedProfile.TextColor}"
-                                    Watermark="#FFFFFF"
-                                    Background="#2A2A2A"
-                                    Foreground="White"
-                                    BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="0" Grid.Row="2" Text="Title Color" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBox Grid.Column="0" Grid.Row="3"
-                                    Text="{Binding SelectedProfile.TitleColor}"
-                                    Watermark="#FFFFFF"
-                                    Background="#2A2A2A"
-                                    Foreground="White"
-                                    BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="2" Grid.Row="2" Text="Label Color" FontSize="12" Foreground="#CCCCCC"/>
-                            <TextBox Grid.Column="2" Grid.Row="3"
-                                    Text="{Binding SelectedProfile.LabelColor}"
-                                    Watermark="#CCCCCC"
-                                    Background="#2A2A2A"
-                                    Foreground="White"
-                                    BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="0" Grid.Row="4" Text="Accent Color" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.BackgroundColor}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBox Grid.Column="0" Grid.Row="1"
+                                     Text="{Binding SelectedProfile.BackgroundColor}"
+                                     Watermark="#000000"
+                                     Background="#2A2A2A"
+                                     Foreground="White"
+                                     BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.TextColor}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBox Grid.Column="2" Grid.Row="1"
+                                     Text="{Binding SelectedProfile.TextColor}"
+                                     Watermark="#FFFFFF"
+                                     Background="#2A2A2A"
+                                     Foreground="White"
+                                     BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="0" Grid.Row="2" Text="{DynamicResource Profile.TitleColor}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBox Grid.Column="0" Grid.Row="3"
+                                     Text="{Binding SelectedProfile.TitleColor}"
+                                     Watermark="#FFFFFF"
+                                     Background="#2A2A2A"
+                                     Foreground="White"
+                                     BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="2" Grid.Row="2" Text="{DynamicResource Profile.LabelColor}" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBox Grid.Column="2" Grid.Row="3"
+                                     Text="{Binding SelectedProfile.LabelColor}"
+                                     Watermark="#CCCCCC"
+                                     Background="#2A2A2A"
+                                     Foreground="White"
+                                     BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="0" Grid.Row="4" Text="{DynamicResource Profile.AccentColor}" FontSize="12" Foreground="#CCCCCC"/>
                             <TextBox Grid.Column="0" Grid.Row="5"
                                     Text="{Binding SelectedProfile.AccentColor}"
                                     Watermark="#0078D4"
@@ -278,14 +278,14 @@
 
                     <!-- Background Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Background"
+                        <TextBlock Text="{DynamicResource Profile.Background}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Background Opacity" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Profile.BackgroundOpacity}" FontSize="12" Foreground="#CCCCCC"/>
                             <NumericUpDown Value="{Binding SelectedProfile.BackgroundOpacity}"
                                           Minimum="0"
                                           Maximum="1"
@@ -296,33 +296,33 @@
                                           BorderBrush="#444444"/>
                         </StackPanel>
 
-                        <CheckBox Content="Transparent Background (for OBS)"
+                        <CheckBox Content="{DynamicResource Profile.TransparentBackground}"
                                  IsChecked="{Binding SelectedProfile.TransparentBackground}"
                                  Foreground="White"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Background Image Path (Optional)" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBlock Text="{DynamicResource Profile.BackgroundImagePath}" FontSize="12" Foreground="#CCCCCC"/>
                             <TextBox Text="{Binding SelectedProfile.BackgroundImagePath}"
-                                    Watermark="Path to background image..."
+                                    Watermark="Calea către imaginea de fundal..."
                                     Background="#2A2A2A"
                                     Foreground="White"
                                     BorderBrush="#444444"/>
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*,10,*" RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Image Mode" FontSize="12" Foreground="#CCCCCC"/>
-                            <ComboBox Grid.Column="0" Grid.Row="1"
-                                     SelectedItem="{Binding SelectedProfile.BackgroundImageMode}"
-                                     Background="#2A2A2A"
-                                     Foreground="White"
-                                     BorderBrush="#444444">
-                                <ComboBoxItem Content="Fill"/>
-                                <ComboBoxItem Content="Fit"/>
-                                <ComboBoxItem Content="Stretch"/>
-                                <ComboBoxItem Content="Tile"/>
-                            </ComboBox>
-
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Image Opacity" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.ImageMode}" FontSize="12" Foreground="#CCCCCC"/>
+                             <ComboBox Grid.Column="0" Grid.Row="1"
+                                      SelectedItem="{Binding SelectedProfile.BackgroundImageMode}"
+                                      Background="#2A2A2A"
+                                      Foreground="White"
+                                      BorderBrush="#444444">
+                                 <ComboBoxItem Content="{DynamicResource Text.Fill}"/>
+                                 <ComboBoxItem Content="{DynamicResource Text.Fit}"/>
+                                 <ComboBoxItem Content="{DynamicResource Text.Stretch}"/>
+                                 <ComboBoxItem Content="{DynamicResource Text.Tile}"/>
+                             </ComboBox>
+ 
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.ImageOpacity}" FontSize="12" Foreground="#CCCCCC"/>
                             <NumericUpDown Grid.Column="2" Grid.Row="1"
                                           Value="{Binding SelectedProfile.BackgroundImageOpacity}"
                                           Minimum="0"
@@ -337,99 +337,99 @@
 
                     <!-- Layout Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Layout"
+                        <TextBlock Text="{DynamicResource Profile.Layout}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
                         <Grid ColumnDefinitions="*,10,*" RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Text Alignment" FontSize="12" Foreground="#CCCCCC"/>
-                            <ComboBox Grid.Column="0" Grid.Row="1"
-                                     SelectedItem="{Binding SelectedProfile.TextAlignment}"
-                                     Background="#2A2A2A"
-                                     Foreground="White"
-                                     BorderBrush="#444444">
-                                <ComboBoxItem Content="Left"/>
-                                <ComboBoxItem Content="Center"/>
-                                <ComboBoxItem Content="Right"/>
-                            </ComboBox>
-
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Vertical Alignment" FontSize="12" Foreground="#CCCCCC"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.TextAlignment}" FontSize="12" Foreground="#CCCCCC"/>
+                             <ComboBox Grid.Column="0" Grid.Row="1"
+                                      SelectedItem="{Binding SelectedProfile.TextAlignment}"
+                                      Background="#2A2A2A"
+                                      Foreground="White"
+                                      BorderBrush="#444444">
+                                 <ComboBoxItem Content="{DynamicResource Text.Left}"/>
+                                 <ComboBoxItem Content="{DynamicResource Text.Center}"/>
+                                 <ComboBoxItem Content="{DynamicResource Text.Right}"/>
+                             </ComboBox>
+ 
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.VerticalAlignment}" FontSize="12" Foreground="#CCCCCC"/>
                             <ComboBox Grid.Column="2" Grid.Row="1"
                                      SelectedItem="{Binding SelectedProfile.VerticalAlignment}"
                                      Background="#2A2A2A"
                                      Foreground="White"
                                      BorderBrush="#444444">
-                                <ComboBoxItem Content="Top"/>
-                                <ComboBoxItem Content="Center"/>
-                                <ComboBoxItem Content="Bottom"/>
+                                <ComboBoxItem Content="{DynamicResource Text.Top}"/>
+                                <ComboBoxItem Content="{DynamicResource Text.Center}"/>
+                                <ComboBoxItem Content="{DynamicResource Text.Bottom}"/>
                             </ComboBox>
                         </Grid>
 
-                        <TextBlock Text="Margins (pixels)"
+                        <TextBlock Text="{DynamicResource Profile.Margins}"
                                    FontSize="14"
                                    Foreground="#CCCCCC"
                                    Margin="0,8,0,0"/>
                         <Grid ColumnDefinitions="*,5,*,5,*,5,*" RowDefinitions="Auto,Auto">
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Left" FontSize="12" Foreground="#CCCCCC"/>
-                            <NumericUpDown Grid.Column="0" Grid.Row="1"
-                                          Value="{Binding SelectedProfile.MarginLeft}"
-                                          Minimum="0"
-                                          Maximum="500"
-                                          Increment="10"
-                                          Background="#2A2A2A"
-                                          Foreground="White"
-                                          BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Right" FontSize="12" Foreground="#CCCCCC"/>
-                            <NumericUpDown Grid.Column="2" Grid.Row="1"
-                                          Value="{Binding SelectedProfile.MarginRight}"
-                                          Minimum="0"
-                                          Maximum="500"
-                                          Increment="10"
-                                          Background="#2A2A2A"
-                                          Foreground="White"
-                                          BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="4" Grid.Row="0" Text="Top" FontSize="12" Foreground="#CCCCCC"/>
-                            <NumericUpDown Grid.Column="4" Grid.Row="1"
-                                          Value="{Binding SelectedProfile.MarginTop}"
-                                          Minimum="0"
-                                          Maximum="300"
-                                          Increment="10"
-                                          Background="#2A2A2A"
-                                          Foreground="White"
-                                          BorderBrush="#444444"/>
-
-                            <TextBlock Grid.Column="6" Grid.Row="0" Text="Bottom" FontSize="12" Foreground="#CCCCCC"/>
-                            <NumericUpDown Grid.Column="6" Grid.Row="1"
-                                          Value="{Binding SelectedProfile.MarginBottom}"
-                                          Minimum="0"
-                                          Maximum="300"
-                                          Increment="10"
-                                          Background="#2A2A2A"
-                                          Foreground="White"
-                                          BorderBrush="#444444"/>
+                             <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Text.Left}" FontSize="12" Foreground="#CCCCCC"/>
+                             <NumericUpDown Grid.Column="0" Grid.Row="1"
+                                           Value="{Binding SelectedProfile.MarginLeft}"
+                                           Minimum="0"
+                                           Maximum="500"
+                                           Increment="10"
+                                           Background="#2A2A2A"
+                                           Foreground="White"
+                                           BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Text.Right}" FontSize="12" Foreground="#CCCCCC"/>
+                             <NumericUpDown Grid.Column="2" Grid.Row="1"
+                                           Value="{Binding SelectedProfile.MarginRight}"
+                                           Minimum="0"
+                                           Maximum="500"
+                                           Increment="10"
+                                           Background="#2A2A2A"
+                                           Foreground="White"
+                                           BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="4" Grid.Row="0" Text="{DynamicResource Text.Top}" FontSize="12" Foreground="#CCCCCC"/>
+                             <NumericUpDown Grid.Column="4" Grid.Row="1"
+                                           Value="{Binding SelectedProfile.MarginTop}"
+                                           Minimum="0"
+                                           Maximum="300"
+                                           Increment="10"
+                                           Background="#2A2A2A"
+                                           Foreground="White"
+                                           BorderBrush="#444444"/>
+ 
+                             <TextBlock Grid.Column="6" Grid.Row="0" Text="{DynamicResource Text.Bottom}" FontSize="12" Foreground="#CCCCCC"/>
+                             <NumericUpDown Grid.Column="6" Grid.Row="1"
+                                           Value="{Binding SelectedProfile.MarginBottom}"
+                                           Minimum="0"
+                                           Maximum="300"
+                                           Increment="10"
+                                           Background="#2A2A2A"
+                                           Foreground="White"
+                                           BorderBrush="#444444"/>
                         </Grid>
                     </StackPanel>
 
                     <!-- Effects Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Effects"
+                        <TextBlock Text="{DynamicResource Profile.Effects}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
-                        <CheckBox Content="Enable Text Shadow"
+                        <CheckBox Content="{DynamicResource Profile.EnableShadow}"
                                  IsChecked="{Binding SelectedProfile.EnableTextShadow}"
                                  Foreground="White"/>
 
                         <StackPanel Spacing="10"
                                    IsEnabled="{Binding SelectedProfile.EnableTextShadow}">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Shadow Color" FontSize="12" Foreground="#CCCCCC"/>
+                                <TextBlock Text="{DynamicResource Profile.ShadowColor}" FontSize="12" Foreground="#CCCCCC"/>
                                 <TextBox Text="{Binding SelectedProfile.ShadowColor}"
                                         Watermark="#000000"
                                         Background="#2A2A2A"
@@ -438,27 +438,27 @@
                             </StackPanel>
 
                             <Grid ColumnDefinitions="*,5,*,5,*" RowDefinitions="Auto,Auto">
-                                <TextBlock Grid.Column="0" Grid.Row="0" Text="Blur Radius" FontSize="12" Foreground="#CCCCCC"/>
-                                <NumericUpDown Grid.Column="0" Grid.Row="1"
-                                              Value="{Binding SelectedProfile.ShadowBlurRadius}"
-                                              Minimum="0"
-                                              Maximum="50"
-                                              Increment="1"
-                                              Background="#2A2A2A"
-                                              Foreground="White"
-                                              BorderBrush="#444444"/>
-
-                                <TextBlock Grid.Column="2" Grid.Row="0" Text="Offset X" FontSize="12" Foreground="#CCCCCC"/>
-                                <NumericUpDown Grid.Column="2" Grid.Row="1"
-                                              Value="{Binding SelectedProfile.ShadowOffsetX}"
-                                              Minimum="-20"
-                                              Maximum="20"
-                                              Increment="1"
-                                              Background="#2A2A2A"
-                                              Foreground="White"
-                                              BorderBrush="#444444"/>
-
-                                <TextBlock Grid.Column="4" Grid.Row="0" Text="Offset Y" FontSize="12" Foreground="#CCCCCC"/>
+                                 <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.BlurRadius}" FontSize="12" Foreground="#CCCCCC"/>
+                                 <NumericUpDown Grid.Column="0" Grid.Row="1"
+                                               Value="{Binding SelectedProfile.ShadowBlurRadius}"
+                                               Minimum="0"
+                                               Maximum="50"
+                                               Increment="1"
+                                               Background="#2A2A2A"
+                                               Foreground="White"
+                                               BorderBrush="#444444"/>
+ 
+                                 <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.OffsetX}" FontSize="12" Foreground="#CCCCCC"/>
+                                 <NumericUpDown Grid.Column="2" Grid.Row="1"
+                                               Value="{Binding SelectedProfile.ShadowOffsetX}"
+                                               Minimum="-20"
+                                               Maximum="20"
+                                               Increment="1"
+                                               Background="#2A2A2A"
+                                               Foreground="White"
+                                               BorderBrush="#444444"/>
+ 
+                                 <TextBlock Grid.Column="4" Grid.Row="0" Text="{DynamicResource Profile.OffsetY}" FontSize="12" Foreground="#CCCCCC"/>
                                 <NumericUpDown Grid.Column="4" Grid.Row="1"
                                               Value="{Binding SelectedProfile.ShadowOffsetY}"
                                               Minimum="-20"
@@ -470,7 +470,7 @@
                             </Grid>
                         </StackPanel>
 
-                        <CheckBox Content="Enable Text Outline"
+                        <CheckBox Content="{DynamicResource Profile.EnableOutline}"
                                  IsChecked="{Binding SelectedProfile.EnableTextOutline}"
                                  Foreground="White"
                                  Margin="0,10,0,0"/>
@@ -478,15 +478,15 @@
                         <StackPanel Spacing="10"
                                    IsEnabled="{Binding SelectedProfile.EnableTextOutline}">
                             <Grid ColumnDefinitions="*,10,*" RowDefinitions="Auto,Auto">
-                                <TextBlock Grid.Column="0" Grid.Row="0" Text="Outline Color" FontSize="12" Foreground="#CCCCCC"/>
-                                <TextBox Grid.Column="0" Grid.Row="1"
-                                        Text="{Binding SelectedProfile.OutlineColor}"
-                                        Watermark="#000000"
-                                        Background="#2A2A2A"
-                                        Foreground="White"
-                                        BorderBrush="#444444"/>
-
-                                <TextBlock Grid.Column="2" Grid.Row="0" Text="Thickness" FontSize="12" Foreground="#CCCCCC"/>
+                                 <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Profile.OutlineColor}" FontSize="12" Foreground="#CCCCCC"/>
+                                 <TextBox Grid.Column="0" Grid.Row="1"
+                                         Text="{Binding SelectedProfile.OutlineColor}"
+                                         Watermark="#000000"
+                                         Background="#2A2A2A"
+                                         Foreground="White"
+                                         BorderBrush="#444444"/>
+ 
+                                 <TextBlock Grid.Column="2" Grid.Row="0" Text="{DynamicResource Profile.Thickness}" FontSize="12" Foreground="#CCCCCC"/>
                                 <NumericUpDown Grid.Column="2" Grid.Row="1"
                                               Value="{Binding SelectedProfile.OutlineThickness}"
                                               Minimum="1"
@@ -501,18 +501,34 @@
 
                     <!-- Advanced Section -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Advanced"
+                        <TextBlock Text="{DynamicResource Profile.Advanced}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"/>
                         <Separator Background="#333333"/>
 
-                        <CheckBox Content="Show Verse Numbers"
+                        <CheckBox Content="{DynamicResource Profile.ShowVerseNumbers}"
                                  IsChecked="{Binding SelectedProfile.ShowVerseNumbers}"
                                  Foreground="White"/>
-                        <CheckBox Content="Show Hymn Title"
+                        <CheckBox Content="{DynamicResource Profile.ShowHymnTitle}"
                                  IsChecked="{Binding SelectedProfile.ShowHymnTitle}"
                                  Foreground="White"/>
+
+                        <Separator Background="#333333" Margin="0,10"/>
+                        <TextBlock Text="{DynamicResource Profile.SpecialStyling}" FontSize="14" FontWeight="Bold" Foreground="White"/>
+                        
+                        <CheckBox Content="{DynamicResource Profile.EnableCustomChorus}"
+                                 IsChecked="{Binding SelectedProfile.EnableCustomChorusStyling}"
+                                 Foreground="White"/>
+                        
+                        <StackPanel Spacing="4" IsEnabled="{Binding SelectedProfile.EnableCustomChorusStyling}">
+                            <TextBlock Text="{DynamicResource Profile.CustomColor}" FontSize="12" Foreground="#CCCCCC"/>
+                            <TextBox Text="{Binding SelectedProfile.CustomChorusColor}"
+                                     Watermark="#FFD700"
+                                     Background="#2A2A2A"
+                                     Foreground="White"
+                                     BorderBrush="#444444"/>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -535,30 +551,30 @@
                     <StackPanel Grid.Column="1"
                                Orientation="Horizontal"
                                Spacing="10">
-                        <Button Content="Export"
+                        <Button Content="{DynamicResource Text.Export}"
                                 Click="ExportButton_Click"
                                 Background="#2A2A2A"
                                 Foreground="White"
                                 Padding="20,10"
                                 BorderBrush="#444444"/>
-                        <Button Content="Import"
+                        <Button Content="{DynamicResource Text.Import}"
                                 Command="{Binding ImportProfileCommand}"
                                 Background="#2A2A2A"
                                 Foreground="White"
                                 Padding="20,10"
                                 BorderBrush="#444444"/>
-                        <Button Content="Reset"
+                        <Button Content="{DynamicResource Text.Reset}"
                                 Command="{Binding ResetProfileCommand}"
                                 Background="#2A2A2A"
                                 Foreground="White"
                                 Padding="20,10"
                                 BorderBrush="#444444"/>
-                        <Button Content="Preview"
+                        <Button Content="{DynamicResource Profile.Preview}"
                                 Command="{Binding PreviewProfileCommand}"
                                 Background="#0078D4"
                                 Foreground="White"
                                 Padding="20,10"/>
-                        <Button Content="Save Changes"
+                        <Button Content="{DynamicResource Shortcuts.SaveChanges}"
                                 Command="{Binding SaveProfileCommand}"
                                 Background="#2E7D32"
                                 Foreground="White"

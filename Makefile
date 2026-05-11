@@ -143,7 +143,16 @@ watch:
 # Publish for Windows
 publish-win:
 	@echo "Publishing for Windows..."
-	dotnet publish src/SDAHymns.Desktop -c Release -r win-x64 --self-contained
+	dotnet publish src/SDAHymns.Desktop -c Release -r win-x64 --self-contained -o publish/win-x64
+
+# Pack installer for Windows
+pack-win: publish-win
+	@echo "Packing installer for Windows..."
+	$(eval APP_VERSION=$(shell dotnet build src/SDAHymns.Desktop --getProperty:Version))
+	vpk pack -u SDAHymns -v $(APP_VERSION) -p publish/win-x64 -e SDAHymns.Desktop.exe --packAuthors "SDA Hymns Contributors" --packTitle "SDA Hymns"
+
+# Pack installer (shortcut for Windows)
+pack: pack-win
 
 # Publish for macOS
 publish-mac:

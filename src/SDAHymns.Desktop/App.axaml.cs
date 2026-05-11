@@ -12,6 +12,7 @@ using SDAHymns.Core.Data;
 using SDAHymns.Core.Services;
 using SDAHymns.Desktop.ViewModels;
 using SDAHymns.Desktop.Views;
+using SDAHymns.Desktop.Services;
 using Velopack;
 
 namespace SDAHymns.Desktop;
@@ -27,9 +28,6 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Velopack startup hook - MUST be called first
-        VelopackApp.Build().Run();
-
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
@@ -70,6 +68,17 @@ public partial class App : Application
             services.AddTransient<RemoteWidgetViewModel>();
 
             _serviceProvider = services.BuildServiceProvider();
+
+            // Initialize Localization BEFORE creating windows
+            var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
+            var lang = Task.Run(async () => await settingsService.GetLanguageAsync()).Result;
+            var culture = lang switch
+            {
+                "ro" => "ro-RO",
+                "en" => "en-US",
+                _ => lang
+            };
+            LocalizationManager.Instance.SetLanguage(culture);
 
             // Check launch mode - default to RemoteWidget
             var args = Environment.GetCommandLineArgs();
@@ -133,7 +142,10 @@ public partial class App : Application
                                 // (full update UI would be in MainWindow)
                                 // TODO: Add update notification to RemoteWidget status bar
                                 // For now, we'll just log it - user can see updates in advanced mode
-                                logger?.LogInformation("Update available: {Version}", updateInfo.TargetFullRelease.Version);
+                                if (logger?.IsEnabled(LogLevel.Information) == true)
+                                {
+                                    logger.LogInformation("Update available: {Version}", updateInfo.TargetFullRelease.Version);
+                                }
                             }
                         });
                     }

@@ -40,4 +40,14 @@ public class RemoteWidgetSettings
     /// The last hymn category used.
     /// </summary>
     public string LastCategory { get; set; } = "crestine";
+
+    /// <summary>
+    /// Quick slots for hymn numbers.
+    /// </summary>
+    public List<int> QuickSlots { get; set; } = new List<int> { 0, 0, 0, 0 };
+
+    /// <summary>
+    /// Custom labels for quick slots (e.g., "Opening", "Choir").
+    /// </summary>
+    public List<string> QuickSlotLabels { get; set; } = new List<string> { "", "", "", "" };
 }
