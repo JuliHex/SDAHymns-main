@@ -147,14 +147,25 @@ public partial class DisplayWindow : Window
         {
             VerseLabelText.FontFamily = new FontFamily(profile.FontFamily);
             VerseLabelText.FontSize = profile.LabelFontSize;
-            VerseLabelText.FontWeight = ParseFontWeight(profile.FontWeight);
+            VerseLabelText.FontWeight = FontWeight.Bold; // Forced bold as requested
             VerseLabelText.IsVisible = profile.ShowVerseNumbers;
+            // Align the label's line height with the content so they vertically align
+            VerseLabelText.LineHeight = profile.LineHeight * profile.VerseFontSize;
 
             if (this.FindControl<TextBlock>("ChorusLabelText") is TextBlock chorusLabel)
             {
                 chorusLabel.FontFamily = new FontFamily(profile.FontFamily);
                 chorusLabel.FontSize = profile.LabelFontSize;
-                chorusLabel.FontWeight = ParseFontWeight(profile.FontWeight);
+                chorusLabel.FontWeight = FontWeight.Bold; // Forced bold as requested
+                chorusLabel.LineHeight = VerseLabelText.LineHeight;
+                chorusLabel.TextAlignment = ParseTextAlignment(profile.TextAlignment);
+                
+                if (chorusLabel.TextAlignment == TextAlignment.Center)
+                    chorusLabel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+                else if (chorusLabel.TextAlignment == TextAlignment.Right)
+                    chorusLabel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
+                else
+                    chorusLabel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
             }
             
             try 
@@ -170,7 +181,7 @@ public partial class DisplayWindow : Window
         {
             VerseContentText.FontFamily = new FontFamily(profile.FontFamily);
             VerseContentText.FontSize = profile.VerseFontSize;
-            VerseContentText.FontWeight = ParseFontWeight(profile.FontWeight);
+            VerseContentText.FontWeight = FontWeight.Bold; // Forced bold as requested
             VerseContentText.TextAlignment = ParseTextAlignment(profile.TextAlignment);
             VerseContentText.LineHeight = profile.LineHeight * profile.VerseFontSize;
             
@@ -181,9 +192,10 @@ public partial class DisplayWindow : Window
                 {
                     chorusContent.FontFamily = new FontFamily(profile.FontFamily);
                     chorusContent.FontSize = profile.VerseFontSize;
-                    chorusContent.FontWeight = ParseFontWeight(profile.FontWeight);
+                    chorusContent.FontWeight = FontWeight.Bold; // Forced bold as requested
                     chorusContent.Foreground = VerseContentText.Foreground;
                     chorusContent.LineHeight = VerseContentText.LineHeight;
+                    chorusContent.TextAlignment = VerseContentText.TextAlignment;
                 }
             }
             catch { VerseContentText.Foreground = Brushes.White; }

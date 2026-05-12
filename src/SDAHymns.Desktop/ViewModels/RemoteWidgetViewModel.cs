@@ -15,16 +15,80 @@ public partial class RemoteWidgetViewModel : ViewModelBase
 {
     private readonly IHymnDisplayService _hymnService;
     private readonly IAudioPlayerService? _audioService;
+    private readonly DesktopRemoteControlService? _remoteControlService;
     private readonly ISettingsService _settingsService;
+    private readonly BroadcastSyncService _broadcastSync;
+    private readonly ISearchService _searchService;
 
     [ObservableProperty]
     private string _hymnNumberInput = "";
+
+    partial void OnHymnNumberInputChanged(string value)
+    {
+        UpdateRealTimePreview(value);
+    }
+
+    private async void UpdateRealTimePreview(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            if (_currentHymn == null)
+            {
+                ActiveHymnNumber = "";
+                ActiveHymnTitle = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
+            }
+            else
+            {
+                ActiveHymnNumber = _currentHymn.Number.ToString();
+                ActiveHymnTitle = _currentHymn.Title;
+            }
+            return;
+        }
+
+        try
+        {
+            if (int.TryParse(query, out int number))
+            {
+                var hymn = await _hymnService.GetHymnByNumberAsync(number, SelectedCategory);
+                if (hymn != null)
+                {
+                    ActiveHymnNumber = hymn.Number.ToString();
+                    ActiveHymnTitle = hymn.Title;
+                }
+                else
+                {
+                    ActiveHymnNumber = query;
+                    ActiveHymnTitle = "";
+                }
+            }
+            else if (query.Length >= 2)
+            {
+                var results = await _searchService.SearchHymnsAsync(query, SelectedCategory);
+                if (results != null && results.Any())
+                {
+                    var bestMatch = results.First();
+                    ActiveHymnNumber = bestMatch.Number.ToString();
+                    ActiveHymnTitle = bestMatch.Title;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors in preview
+        }
+    }
 
     [ObservableProperty]
     private string _currentHymnDisplay = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
 
     [ObservableProperty]
     private string _verseIndicator = "";
+
+    [ObservableProperty]
+    private string _activeHymnNumber = "";
+
+    [ObservableProperty]
+    private string _activeHymnTitle = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
 
     [ObservableProperty]
     private string _selectedCategory = "crestine";
@@ -97,11 +161,30 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     public RemoteWidgetViewModel(
         IHymnDisplayService hymnService,
         ISettingsService settingsService,
-        IAudioPlayerService? audioService = null)
+        BroadcastSyncService broadcastSync,
+        ISearchService searchService,
+        IAudioPlayerService? audioService = null,
+        DesktopRemoteControlService? remoteControlService = null)
     {
         _hymnService = hymnService;
         _settingsService = settingsService;
+        _broadcastSync = broadcastSync;
+        _searchService = searchService;
         _audioService = audioService;
+        _remoteControlService = remoteControlService;
+
+        if (_remoteControlService != null)
+        {
+            _remoteControlService.OnNextRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(NextVerse);
+            _remoteControlService.OnPrevRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(PreviousVerse);
+            _remoteControlService.OnLoadRequested += (num, cat) => Avalonia.Threading.Dispatcher.UIThread.Post(async () => 
+            {
+                SelectedCategory = cat;
+                HymnNumberInput = num.ToString();
+                await LoadHymnAsync();
+            });
+            _remoteControlService.OnToggleBlankRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(BlankDisplay);
+        }
 
         // Settings will be loaded asynchronously in InitializeAsync
         Settings = new RemoteWidgetSettings();
@@ -136,6 +219,13 @@ public partial class RemoteWidgetViewModel : ViewModelBase
                 SelectedCategoryItem = Categories.FirstOrDefault(c => c.Slug == "crestine");
             }
 
+            // Ensure localization strings are loaded for initial state
+            if (string.IsNullOrEmpty(ActiveHymnTitle))
+            {
+                ActiveHymnTitle = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
+                CurrentHymnDisplay = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
+            }
+
             UpdateSlotLabels();
         }
         finally
@@ -150,11 +240,19 @@ public partial class RemoteWidgetViewModel : ViewModelBase
         Slot2Text = Settings.QuickSlots[1] > 0 ? Settings.QuickSlots[1].ToString() : "";
         Slot3Text = Settings.QuickSlots[2] > 0 ? Settings.QuickSlots[2].ToString() : "";
         Slot4Text = Settings.QuickSlots[3] > 0 ? Settings.QuickSlots[3].ToString() : "";
+        Slot5Text = Settings.QuickSlots[4] > 0 ? Settings.QuickSlots[4].ToString() : "";
+        Slot6Text = Settings.QuickSlots[5] > 0 ? Settings.QuickSlots[5].ToString() : "";
+        Slot7Text = Settings.QuickSlots[6] > 0 ? Settings.QuickSlots[6].ToString() : "";
+        Slot8Text = Settings.QuickSlots[7] > 0 ? Settings.QuickSlots[7].ToString() : "";
 
         Slot1Label = Settings.QuickSlotLabels[0];
         Slot2Label = Settings.QuickSlotLabels[1];
         Slot3Label = Settings.QuickSlotLabels[2];
         Slot4Label = Settings.QuickSlotLabels[3];
+        Slot5Label = Settings.QuickSlotLabels[4];
+        Slot6Label = Settings.QuickSlotLabels[5];
+        Slot7Label = Settings.QuickSlotLabels[6];
+        Slot8Label = Settings.QuickSlotLabels[7];
     }
 
     [ObservableProperty]
@@ -168,6 +266,18 @@ public partial class RemoteWidgetViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _slot4Text = "";
+
+    [ObservableProperty]
+    private string _slot5Text = "";
+
+    [ObservableProperty]
+    private string _slot6Text = "";
+
+    [ObservableProperty]
+    private string _slot7Text = "";
+
+    [ObservableProperty]
+    private string _slot8Text = "";
 
     private string _slot1Label = "";
     public string Slot1Label
@@ -221,17 +331,73 @@ public partial class RemoteWidgetViewModel : ViewModelBase
         }
     }
 
+    private string _slot5Label = "";
+    public string Slot5Label
+    {
+        get => _slot5Label;
+        set
+        {
+            if (SetProperty(ref _slot5Label, value))
+            {
+                UpdateSlotLabel(4, value);
+            }
+        }
+    }
+
+    private string _slot6Label = "";
+    public string Slot6Label
+    {
+        get => _slot6Label;
+        set
+        {
+            if (SetProperty(ref _slot6Label, value))
+            {
+                UpdateSlotLabel(5, value);
+            }
+        }
+    }
+
+    private string _slot7Label = "";
+    public string Slot7Label
+    {
+        get => _slot7Label;
+        set
+        {
+            if (SetProperty(ref _slot7Label, value))
+            {
+                UpdateSlotLabel(6, value);
+            }
+        }
+    }
+
+    private string _slot8Label = "";
+    public string Slot8Label
+    {
+        get => _slot8Label;
+        set
+        {
+            if (SetProperty(ref _slot8Label, value))
+            {
+                UpdateSlotLabel(7, value);
+            }
+        }
+    }
+
     partial void OnSlot1TextChanged(string value) => UpdateSlot(0, value);
     partial void OnSlot2TextChanged(string value) => UpdateSlot(1, value);
     partial void OnSlot3TextChanged(string value) => UpdateSlot(2, value);
     partial void OnSlot4TextChanged(string value) => UpdateSlot(3, value);
+    partial void OnSlot5TextChanged(string value) => UpdateSlot(4, value);
+    partial void OnSlot6TextChanged(string value) => UpdateSlot(5, value);
+    partial void OnSlot7TextChanged(string value) => UpdateSlot(6, value);
+    partial void OnSlot8TextChanged(string value) => UpdateSlot(7, value);
 
     // Label change handlers removed as we handle them in the setters now
 
     private void UpdateSlotLabel(int index, string value)
     {
-        if (Settings.QuickSlotLabels == null) Settings.QuickSlotLabels = new List<string> { "", "", "", "" };
-        while (Settings.QuickSlotLabels.Count < 4) Settings.QuickSlotLabels.Add("");
+        if (Settings.QuickSlotLabels == null) Settings.QuickSlotLabels = new List<string> { "", "", "", "", "", "", "", "" };
+        while (Settings.QuickSlotLabels.Count < 8) Settings.QuickSlotLabels.Add("");
         
         if (Settings.QuickSlotLabels.Count > index)
         {
@@ -258,15 +424,31 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveCurrentToSlot(string slotIndexStr)
     {
-        if (int.TryParse(slotIndexStr, out int index) && index >= 1 && index <= 4)
+        if (int.TryParse(slotIndexStr, out int index) && index >= 1 && index <= 8)
         {
             int number = 0;
-            if (int.TryParse(HymnNumberInput, out number)) { }
-            else if (_currentHymn != null) { number = _currentHymn.Number; }
+            string title = "";
+            
+            if (_currentHymn != null)
+            {
+                number = _currentHymn.Number;
+                title = _currentHymn.Title;
+            }
+            else if (int.TryParse(HymnNumberInput, out number))
+            {
+                // If not loaded but number in box, try to get title for label
+                var hymn = await _hymnService.GetHymnByNumberAsync(number, SelectedCategory);
+                if (hymn != null) title = hymn.Title;
+            }
 
             if (number > 0)
             {
                 Settings.QuickSlots[index - 1] = number;
+                if (!string.IsNullOrEmpty(title))
+                {
+                    Settings.QuickSlotLabels[index - 1] = title;
+                }
+                
                 UpdateSlotLabels();
                 SaveSettings();
                 StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.SettingsSaved"), number, index);
@@ -277,10 +459,14 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadFromSlot(string slotIndexStr)
     {
-        if (int.TryParse(slotIndexStr, out int index) && index >= 1 && index <= 4)
+        if (int.TryParse(slotIndexStr, out int index) && index >= 1 && index <= 8)
         {
             // Try to use the text in the textbox first (it might be fresher)
-            string text = index switch { 1 => Slot1Text, 2 => Slot2Text, 3 => Slot3Text, 4 => Slot4Text, _ => "" };
+            string text = index switch { 
+                1 => Slot1Text, 2 => Slot2Text, 3 => Slot3Text, 4 => Slot4Text, 
+                5 => Slot5Text, 6 => Slot6Text, 7 => Slot7Text, 8 => Slot8Text,
+                _ => "" 
+            };
             
             if (int.TryParse(text, out int number) && number > 0)
             {
@@ -308,19 +494,29 @@ public partial class RemoteWidgetViewModel : ViewModelBase
             return;
         }
 
-        if (!int.TryParse(HymnNumberInput, out int hymnNumber))
+        Hymn? hymn = null;
+        if (int.TryParse(HymnNumberInput, out int hymnNumber))
         {
-            ShowError(LocalizationManager.Instance.GetString("Status.Error", "Invalid hymn number"));
-            return;
+            hymn = await _hymnService.GetHymnByNumberAsync(hymnNumber, SelectedCategory);
+        }
+        else
+        {
+            // Title search
+            StatusMessage = LocalizationManager.Instance.GetString("Status.Searching", "Searching...");
+            var results = await _searchService.SearchHymnsAsync(HymnNumberInput, SelectedCategory);
+            if (results.Any())
+            {
+                // Take the first best match
+                var bestMatch = results.First();
+                hymn = await _hymnService.GetHymnByNumberAsync(bestMatch.Number, bestMatch.CategorySlug);
+            }
         }
 
         try
         {
-            var hymn = await _hymnService.GetHymnByNumberAsync(hymnNumber, SelectedCategory);
-
             if (hymn == null)
             {
-                ShowError(string.Format(LocalizationManager.Instance.GetString("Status.HymnNotFound"), hymnNumber, SelectedCategory));
+                ShowError(string.Format(LocalizationManager.Instance.GetString("Status.HymnNotFound"), HymnNumberInput, SelectedCategory));
                 return;
             }
 
@@ -332,6 +528,8 @@ public partial class RemoteWidgetViewModel : ViewModelBase
             _currentVerseIndex = 0;
 
             // Update display
+            ActiveHymnNumber = hymn.Number.ToString();
+            ActiveHymnTitle = hymn.Title;
             CurrentHymnDisplay = $"{hymn.Number} {hymn.Title}";
             UpdateVerseIndicator();
             HymnNumberInput = ""; // Clear for next input
@@ -341,6 +539,9 @@ public partial class RemoteWidgetViewModel : ViewModelBase
 
             UpdateNavigationButtons();
             StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnLoaded"), hymn.Title, hymn.Verses?.Count ?? 0);
+
+            // Sync to Broadcast Center
+            _ = _broadcastSync.SyncHymnAsync(hymn.Number, hymn.Title);
 
             // Save last hymn number
             Settings.LastHymnNumber = hymnNumber;
@@ -363,6 +564,9 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     private void NumberPadPress(string digit)
     {
         HymnNumberInput += digit;
+        // The UI should stay focused on the TextBox if possible, 
+        // but since buttons take focus, we don't need to do much here
+        // as the LoadHymnCommand will clear it anyway.
     }
 
     [RelayCommand]
@@ -425,11 +629,21 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     {
         _currentHymn = null;
         _currentVerseIndex = 0;
+        ActiveHymnNumber = "";
+        ActiveHymnTitle = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
         CurrentHymnDisplay = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
         VerseIndicator = "";
         UpdateNavigationButtons();
         OnBlankDisplayRequested?.Invoke();
+        _ = _broadcastSync.HideHymnAsync();
         StatusMessage = LocalizationManager.Instance.GetString("Status.Ready");
+
+        if (_remoteControlService != null)
+        {
+            _remoteControlService.CurrentHymnNumber = "";
+            _remoteControlService.CurrentHymnTitle = LocalizationManager.Instance.GetString("Main.NoHymnLoaded");
+            _remoteControlService.CurrentVerseIndicator = "";
+        }
     }
 
     [RelayCommand(CanExecute = nameof(IsAudioAvailable))]
@@ -564,6 +778,13 @@ public partial class RemoteWidgetViewModel : ViewModelBase
         if (label == "Refren" || label == "Chorus") label = LocalizationManager.Instance.GetString("Text.Chorus");
         
         VerseIndicator = $"{label} ({_currentVerseIndex + 1}/{_currentHymn.Verses.Count})";
+
+        if (_remoteControlService != null)
+        {
+            _remoteControlService.CurrentHymnNumber = ActiveHymnNumber;
+            _remoteControlService.CurrentHymnTitle = ActiveHymnTitle;
+            _remoteControlService.CurrentVerseIndicator = VerseIndicator;
+        }
     }
 
     private string? ExtractNumberPrefix(string content)
@@ -638,6 +859,8 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     {
         _currentHymn = hymn;
         _currentVerseIndex = verseIndex;
+        ActiveHymnNumber = hymn.Number.ToString();
+        ActiveHymnTitle = hymn.Title;
         CurrentHymnDisplay = $"{hymn.Number} {hymn.Title}";
         UpdateVerseIndicator();
         UpdateNavigationButtons();

@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SDAHymns.Android.ViewModels"
+             x:Class="SDAHymns.Android.Views.MainView"
+             x:DataType="vm:AndroidRemoteViewModel"
+             Background="#1E1E2E">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header / Status -->
+        <StackPanel Grid.Row="0" Spacing="10">
+            <TextBlock Text="SDA REMOTE" 
+                       Foreground="#FFD700" 
+                       FontSize="14" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"
+                       LetterSpacing="2"/>
+            
+            <Border Background="#2A2A3C" 
+                    CornerRadius="12" 
+                    Padding="20" 
+                    Margin="0,10">
+                <StackPanel Spacing="5">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Text="{Binding ActiveHymnNumber}" 
+                                   Foreground="#FFD700" 
+                                   FontSize="32" 
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,15,0"/>
+                        <TextBlock Grid.Column="1" 
+                                   Text="{Binding ActiveHymnTitle}" 
+                                   Foreground="White" 
+                                   FontSize="20" 
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock Text="{Binding VerseIndicator}" 
+                               Foreground="#9CA3AF" 
+                               FontSize="14" 
+                               HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Controls -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="20">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                <Button Grid.Column="0" 
+                        Command="{Binding PreviousCommand}"
+                        Background="#2A2A3C"
+                        Height="100"
+                        HorizontalAlignment="Stretch"
+                        CornerRadius="15">
+                    <Path Data="M15,5L5,15L15,25" Stroke="White" StrokeThickness="3" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Grid.Column="1" 
+                        Command="{Binding NextCommand}"
+                        Background="#6366F1"
+                        Height="100"
+                        HorizontalAlignment="Stretch"
+                        CornerRadius="15">
+                    <Path Data="M5,5L15,15L5,25" Stroke="White" StrokeThickness="3" HorizontalAlignment="Center"/>
+                </Button>
+            </Grid>
+
+            <TextBox Text="{Binding HymnNumberInput}" 
+                     Watermark="Enter Hymn Number..."
+                     FontSize="20"
+                     Padding="15"
+                     Background="#2A2A3C"
+                     Foreground="White"
+                     BorderThickness="0"
+                     CornerRadius="10">
+                <TextBox.InnerRightContent>
+                    <Button Command="{Binding LoadCommand}" 
+                            Background="#FFD700" 
+                            Foreground="Black"
+                            Content="LOAD"
+                            FontWeight="Bold"
+                            Padding="15,0"
+                            Margin="5"/>
+                </TextBox.InnerRightContent>
+            </TextBox>
+        </StackPanel>
+
+        <!-- Footer / Settings -->
+        <StackPanel Grid.Row="2" Spacing="10">
+            <Button Command="{Binding BlankCommand}"
+                    Background="#EF4444"
+                    Foreground="White"
+                    Content="BLACK SCREEN"
+                    FontWeight="Bold"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Padding="15"
+                    CornerRadius="10"/>
+            
+            <Grid ColumnDefinitions="Auto,*" Margin="0,10,0,0">
+                <TextBlock Text="Server IP:" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox Grid.Column="1" 
+                         Text="{Binding ServerIp}" 
+                         FontSize="12" 
+                         Background="#2A2A3C" 
+                         Foreground="White"
+                         BorderThickness="0"
+                         Padding="8,5"/>
+            </Grid>
+            <TextBlock Text="{Binding StatusMessage}" 
+                       Foreground="#10B981" 
+                       FontSize="12" 
+                       HorizontalAlignment="Center"
+                       Margin="0,5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

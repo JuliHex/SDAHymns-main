@@ -221,11 +221,11 @@ public class SettingsService : ISettingsService
             if (settings == null) return new RemoteWidgetSettings();
 
             // Ensure lists have enough items
-            if (settings.QuickSlots == null) settings.QuickSlots = new List<int> { 0, 0, 0, 0 };
-            while (settings.QuickSlots.Count < 4) settings.QuickSlots.Add(0);
+            if (settings.QuickSlots == null) settings.QuickSlots = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0 };
+            while (settings.QuickSlots.Count < 8) settings.QuickSlots.Add(0);
             
-            if (settings.QuickSlotLabels == null) settings.QuickSlotLabels = new List<string> { "", "", "", "" };
-            while (settings.QuickSlotLabels.Count < 4) settings.QuickSlotLabels.Add("");
+            if (settings.QuickSlotLabels == null) settings.QuickSlotLabels = new List<string> { "", "", "", "", "", "", "", "" };
+            while (settings.QuickSlotLabels.Count < 8) settings.QuickSlotLabels.Add("");
 
             return settings;
         }

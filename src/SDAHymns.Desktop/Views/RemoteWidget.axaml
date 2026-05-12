@@ -9,7 +9,7 @@
         x:DataType="vm:RemoteWidgetViewModel"
         Title="{DynamicResource Remote.Title}"
         Width="320"
-        Height="620"
+        Height="760"
         CanResize="False"
         SystemDecorations="None"
         TransparencyLevelHint="None"
@@ -218,6 +218,9 @@
                     <Button Classes="icon-button" Content="🔒" Command="{Binding ToggleLockPositionCommand}"
                             Classes.active="{Binding IsPositionLocked}"
                             ToolTip.Tip="{DynamicResource Remote.LockPosition}"/>
+                    <Button Classes="icon-button" Content="⌨" Command="{Binding ToggleNumberPadCommand}"
+                            Classes.active="{Binding ShowNumberPad}"
+                            ToolTip.Tip="{DynamicResource Remote.ToggleNumPad}"/>
                     <Button Classes="icon-button" Content="📺" Command="{Binding TogglePresenterViewCommand}"
                             ToolTip.Tip="{DynamicResource Remote.PresenterView}"/>
                     <Button Classes="icon-button" Content="⚙" Click="AdvancedMode_Click"
@@ -231,17 +234,27 @@
                     <!-- Current Hymn Display -->
                     <Border Classes="status-panel">
                         <StackPanel>
-                            <TextBlock Text="{Binding CurrentHymnDisplay}" 
-                                       Foreground="White" 
-                                       FontSize="18" 
-                                       FontWeight="Bold" 
-                                       TextWrapping="Wrap" 
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"/>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <TextBlock Grid.Column="0" 
+                                           Text="{Binding ActiveHymnNumber}" 
+                                           Foreground="#FFD700" 
+                                           FontSize="28" 
+                                           FontWeight="Bold" 
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="{Binding ActiveHymnTitle}" 
+                                           Foreground="White" 
+                                           FontSize="18" 
+                                           FontWeight="Bold" 
+                                           TextWrapping="Wrap" 
+                                           VerticalAlignment="Center"
+                                           TextAlignment="Left"/>
+                            </Grid>
                             <TextBlock Text="{Binding VerseIndicator}" 
                                        Foreground="#9CA3AF" 
                                        FontSize="14" 
-                                       HorizontalAlignment="Center"/>
+                                       Margin="0,4,0,0"
+                                       HorizontalAlignment="Right"/>
                         </StackPanel>
                     </Border>
 
@@ -308,38 +321,76 @@
                     <!-- Quick Slots -->
                     <StackPanel Spacing="5" Margin="0,5">
                         <TextBlock Text="{DynamicResource Remote.QuickSlotsTitle}" FontSize="10" Foreground="#9CA3AF" HorizontalAlignment="Center"/>
+                        
+                        <!-- Row 1: Slots 1-4 -->
                         <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="4">
                             <StackPanel Grid.Column="0" Spacing="2">
-                                <TextBox Text="{Binding Slot1Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot1Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                                 <TextBox Text="{Binding Slot1Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
                                 <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="1" 
-                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
                                 <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="1" 
-                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBox Text="{Binding Slot2Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot2Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                                 <TextBox Text="{Binding Slot2Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
                                 <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="2" 
-                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
                                 <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="2" 
-                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="2">
-                                <TextBox Text="{Binding Slot3Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot3Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                                 <TextBox Text="{Binding Slot3Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
                                 <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="3" 
-                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
                                 <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="3" 
-                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
                             </StackPanel>
                             <StackPanel Grid.Column="3" Spacing="2">
-                                <TextBox Text="{Binding Slot4Label, Mode=TwoWay}" Watermark="Label..." FontSize="11" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot4Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                                 <TextBox Text="{Binding Slot4Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
                                 <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="4" 
-                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,6"/>
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
                                 <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="4" 
-                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,3" Background="#16161E" Opacity="0.7"/>
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 2: Slots 5-8 -->
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="4" Margin="0,4,0,0">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBox Text="{Binding Slot5Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot5Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="5" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="5" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBox Text="{Binding Slot6Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot6Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="6" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="6" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBox Text="{Binding Slot7Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot7Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="7" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="7" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Spacing="2">
+                                <TextBox Text="{Binding Slot8Label, Mode=TwoWay}" Watermark="..." FontSize="10" FontWeight="Bold" Height="28" Padding="4" Background="#111118" Opacity="0.8" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                <TextBox Text="{Binding Slot8Text, Mode=TwoWay}" Watermark="---" FontSize="14" Height="36" Padding="4" Background="#16161E" BorderThickness="1" BorderBrush="#3E3E52"/>
+                                <Button Content="{DynamicResource Remote.Show}" Command="{Binding LoadFromSlotCommand}" CommandParameter="8" 
+                                        Background="#2A2A3C" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Padding="0,4"/>
+                                <Button Content="{DynamicResource Remote.Set}" Command="{Binding SaveCurrentToSlotCommand}" CommandParameter="8" 
+                                        FontSize="9" HorizontalAlignment="Stretch" Padding="0,2" Background="#16161E" Opacity="0.7"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

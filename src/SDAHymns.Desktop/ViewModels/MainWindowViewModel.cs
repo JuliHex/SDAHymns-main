@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly IAudioPlayerService _audioPlayer;
     private readonly HymnSynchronizer _synchronizer;
     private readonly ISettingsService _settingsService;
+    private readonly BroadcastSyncService _broadcastSync;
 
     public event Action? RequestClose;
     
@@ -142,7 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public string AudioTimeDisplay =>
         $"{FormatTime(AudioPosition)} / {FormatTime(AudioDuration)}";
 
-    public MainWindowViewModel(IHymnDisplayService hymnService, IUpdateService updateService, ISearchService searchService, IDisplayProfileService profileService, IAudioPlayerService audioPlayer, ISettingsService settingsService)
+    public MainWindowViewModel(IHymnDisplayService hymnService, IUpdateService updateService, ISearchService searchService, IDisplayProfileService profileService, IAudioPlayerService audioPlayer, ISettingsService settingsService, BroadcastSyncService broadcastSync)
     {
         _hymnService = hymnService;
         _updateService = updateService;
@@ -150,6 +151,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _profileService = profileService;
         _audioPlayer = audioPlayer;
         _settingsService = settingsService;
+        _broadcastSync = broadcastSync;
         _synchronizer = new HymnSynchronizer(_audioPlayer);
 
         // Subscribe to audio events
@@ -340,15 +342,19 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             ? StripNumberPrefix(Verses[CurrentVerseIndex + 1].Content)
             : null;
 
-    public bool IsChorus => CurrentVerseLabel == "Refren";
-    public bool IsVerseNumber => !string.IsNullOrEmpty(CurrentVerseLabel) && CurrentVerseLabel != "Refren" && CurrentVerseLabel != "Title";
+    public bool IsChorus => CurrentVerseLabel == LocalizationManager.Instance.GetString("Text.Chorus");
+    public bool IsVerseNumber => !string.IsNullOrEmpty(CurrentVerseLabel) && 
+                                  CurrentVerseLabel != LocalizationManager.Instance.GetString("Text.Chorus") && 
+                                  CurrentVerseLabel != LocalizationManager.Instance.GetString("Text.Title");
     public bool IsUnlabeledVerse => !IsChorus && !IsVerseNumber && !IsTitleSlide;
 
     public bool IsTitleSlide => CurrentVerseLabel == LocalizationManager.Instance.GetString("Text.Title");
     public bool IsNotTitleSlide => !IsTitleSlide && !string.IsNullOrEmpty(CurrentVerseContent);
 
-    public bool IsNextChorus => NextVerseLabel == "Refren";
-    public bool IsNextVerseNumber => !string.IsNullOrEmpty(NextVerseLabel) && NextVerseLabel != "Refren" && NextVerseLabel != "Title";
+    public bool IsNextChorus => NextVerseLabel == LocalizationManager.Instance.GetString("Text.Chorus");
+    public bool IsNextVerseNumber => !string.IsNullOrEmpty(NextVerseLabel) && 
+                                      NextVerseLabel != LocalizationManager.Instance.GetString("Text.Chorus") && 
+                                      NextVerseLabel != LocalizationManager.Instance.GetString("Text.Title");
     public bool IsNextUnlabeledVerse => !IsNextChorus && !IsNextVerseNumber && !string.IsNullOrEmpty(NextVerseContent);
     public bool IsNextTitleSlide => NextVerseLabel == LocalizationManager.Instance.GetString("Text.Title");
     public bool IsNotNextTitleSlide => !IsNextTitleSlide && !string.IsNullOrEmpty(NextVerseContent);
@@ -380,8 +386,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             if (string.IsNullOrEmpty(label)) return ActiveProfile?.LabelColor ?? "#CCCCCC";
 
             // Check if it's a Refren or a Number (e.g., "1.", "2.", etc.)
-            var isChorusOrNumber = label.Contains(LocalizationManager.Instance.GetString("Text.Chorus"), StringComparison.OrdinalIgnoreCase) || 
-                                  label.Contains("Chorus", StringComparison.OrdinalIgnoreCase) ||
+            var isChorusOrNumber = label.Equals(LocalizationManager.Instance.GetString("Text.Chorus"), StringComparison.OrdinalIgnoreCase) || 
                                   (int.TryParse(label.TrimEnd('.'), out _));
             
             if (isChorusOrNumber)
@@ -403,7 +408,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             var label = NextVerseLabel;
             if (string.IsNullOrEmpty(label)) return ActiveProfile?.LabelColor ?? "#CCCCCC";
 
-            var isChorusOrNumber = label.Contains("Chorus", StringComparison.OrdinalIgnoreCase) || 
+            var isChorusOrNumber = label.Equals(LocalizationManager.Instance.GetString("Text.Chorus"), StringComparison.OrdinalIgnoreCase) || 
                                   (int.TryParse(label.TrimEnd('.'), out _));
             
             if (isChorusOrNumber)
@@ -443,6 +448,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 OnPropertyChanged(nameof(VerseIndicator));
 
                 StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnLoaded"), CurrentHymn.Title, Verses.Count);
+
+                // Sync to Broadcast Center
+                _ = _broadcastSync.SyncHymnAsync(CurrentHymn.Number, CurrentHymn.Title);
             }
             else
             {
@@ -526,6 +534,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         IsDisplayWindowOpen = false;
         RequestClose?.Invoke();
+        _ = _broadcastSync.HideHymnAsync();
     }
 
     [RelayCommand]
@@ -613,6 +622,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 OnPropertyChanged(nameof(HymnTitle));
                 OnPropertyChanged(nameof(FavoriteIcon));
                 StatusMessage = string.Format(LocalizationManager.Instance.GetString("Status.HymnLoaded"), CurrentHymn.Title, Verses.Count);
+                
+                // Sync to Broadcast Center
+                _ = _broadcastSync.SyncHymnAsync(CurrentHymn.Number, CurrentHymn.Title);
             }
             else
             {

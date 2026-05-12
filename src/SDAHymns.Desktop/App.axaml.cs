@@ -61,6 +61,10 @@ public partial class App : Application
             services.AddScoped<IAudioLibraryService, AudioLibraryService>();
             services.AddScoped<IAudioDownloadService, AudioDownloadService>();
             services.AddSingleton<HttpClient>();  // For AudioDownloadService
+            services.AddSingleton<BroadcastSyncService>();
+            services.AddSingleton<DesktopRemoteControlService>();
+            services.AddSingleton<IRemoteControlHandler>(sp => sp.GetRequiredService<DesktopRemoteControlService>());
+            services.AddSingleton<RemoteControlServer>();
 
             // ViewModels
             services.AddTransient<MainWindowViewModel>();
@@ -79,6 +83,17 @@ public partial class App : Application
                 _ => lang
             };
             LocalizationManager.Instance.SetLanguage(culture);
+
+            // Start Remote Control Server
+            try
+            {
+                var remoteServer = _serviceProvider.GetRequiredService<RemoteControlServer>();
+                remoteServer.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to start Remote Control Server: {ex.Message}");
+            }
 
             // Check launch mode - default to RemoteWidget
             var args = Environment.GetCommandLineArgs();
