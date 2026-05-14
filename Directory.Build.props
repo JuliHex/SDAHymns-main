@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Version>0.1.0</Version>
+    <Version>1.0.1-b</Version>
     <Authors>SDA Hymns Contributors</Authors>
     <Company>Romanian Seventh Day Adventist Church</Company>
     <Product>SDA Hymns</Product>

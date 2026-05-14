@@ -149,7 +149,7 @@ publish-win:
 pack-win: publish-win
 	@echo "Packing installer for Windows..."
 	$(eval APP_VERSION=$(shell dotnet build src/SDAHymns.Desktop --getProperty:Version))
-	vpk pack -u SDAHymns -v $(APP_VERSION) -p publish/win-x64 -e SDAHymns.Desktop.exe --packAuthors "SDA Hymns Contributors" --packTitle "SDA Hymns"
+	dotnet tool run --allow-roll-forward vpk pack -u SDAHymns -v $(APP_VERSION) -p publish/win-x64 -e SDAHymns.Desktop.exe --packAuthors "SDA Hymns Contributors" --packTitle "SDA Hymns" --icon src/SDAHymns.Desktop/Assets/icon.ico --splashImage src/SDAHymns.Desktop/Assets/splash.png
 
 # Pack installer (shortcut for Windows)
 pack: pack-win
