@@ -4,7 +4,7 @@ A modern, cross-platform desktop application for displaying hymns in church serv
 
 ## Overview
 
-SDAHymns is a complete rewrite of a legacy hymn display application, based on the work from the [ThorSPB/SDAHymns](https://github.com/ThorSPB/SDAHymns) repository. It is designed to improve user experience, support streaming workflows, and enable automation. The application displays hymns on projectors and supports customizable styling for OBS/streaming integration.
+SDAHymns is a complete rewrite of a legacy hymn display application, designed to improve user experience, support streaming workflows, and enable automation. The application displays hymns on projectors and supports customizable styling for OBS/streaming integration.
 
 ## Features
 
@@ -29,7 +29,9 @@ SDAHymns is a complete rewrite of a legacy hymn display application, based on th
 - 🚧 **Service Planner** - Pre-plan hymn orders for services (planned)
 - 🚧 **Export** - Generate PDFs and images for bulletins (planned)
 - 🚧 **Statistics** - Track hymn usage frequency (planned)
-
+- ✅ **Preview Window** – Split-panel display: current hymn (large number + title) + dimmed next-hymn lyrics preview for seamless live navigation.
+- ✅ **Remote Control** – Primary operator interface with numpad, category selector (Creștine, Companions, Exploratori, Licurici, Tineret, Diverse), live hymn title preview as-you-type, black screen toggle, 8 programmable quick-slots, and Anterior/Următor navigation.
+  
 ## Tech Stack
 
 - **Language:** C# (.NET 10 LTS)
@@ -44,9 +46,7 @@ SDAHymns is a complete rewrite of a legacy hymn display application, based on th
 
 - Windows 10/11 (primary target)
 - Windows 7/8 (if feasible)
-- macOS ARM (M1/M2/M3)
-- macOS Intel
-
+- 
 ## Getting Started
 
 ### Prerequisites
@@ -101,7 +101,7 @@ SDAHymns/
 │   └── legacy/                 # Legacy app (reference only)
 ├── docs/
 │   └── spec/                   # Specification files
-├── GEMINI.md                   # Developer guidance for Gemini/Antigravity
+├── ANTIGRAVITY.md              # Developer guidance for Antigravity
 ├── README.md                   # This file
 └── Directory.Build.props       # Common MSBuild properties
 ```
@@ -175,7 +175,7 @@ Contributions are welcome! This project aims for industry-standard testing cover
 
 ## Documentation
 
-- **[GEMINI.md](GEMINI.md)** - Comprehensive developer guide and architecture documentation
+- **[ANTIGRAVITY.md](ANTIGRAVITY.md)** - Comprehensive developer guide and architecture documentation
 - **[Spec Context](docs/spec/_context.md)** - Current project status and spec tracking
 - **[Spec 001](docs/spec/001-project-structure.md)** - Project structure specification
 
@@ -219,7 +219,7 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 
 - Built for the Romanian Seventh Day Adventist Church
 - Successor to the legacy "Imnuri Crestine" application
-- Developed with [Claude Code](https://claude.ai/code)
+- Developed with Antigravity
 
 ## Contact & Support
 

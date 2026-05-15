@@ -208,6 +208,51 @@
                     </StackPanel>
                 </Grid>
             </Border>
+ 
+            <!-- Update Notification Banner -->
+            <Border IsVisible="{Binding IsUpdateAvailable}" 
+                    Background="#2E7D32" 
+                    Padding="12,8" 
+                    DockPanel.Dock="Top">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="{DynamicResource Update.Available}" 
+                                   Foreground="White" 
+                                   FontSize="12" 
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="{Binding LatestVersion, StringFormat='v{0}'}" 
+                                   Foreground="#C8E6C9" 
+                                   FontSize="10"/>
+                    </StackPanel>
+                    
+                    <ProgressBar Grid.Column="1" 
+                                 IsVisible="{Binding IsDownloadingUpdate}" 
+                                 Value="{Binding DownloadProgress}" 
+                                 Width="60" 
+                                 Height="16" 
+                                 Margin="8,0"
+                                 VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <Button Content="✓" 
+                                Command="{Binding UpdateNowCommand}" 
+                                IsVisible="{Binding !IsDownloadingUpdate}"
+                                Padding="8,4" 
+                                MinWidth="28"
+                                FontSize="10"
+                                Background="#1B5E20"
+                                ToolTip.Tip="{DynamicResource Update.Now}"/>
+                        <Button Content="✕" 
+                                Command="{Binding DismissUpdateCommand}" 
+                                IsVisible="{Binding !IsDownloadingUpdate}"
+                                Padding="8,4" 
+                                MinWidth="28"
+                                FontSize="10"
+                                Background="Transparent"
+                                ToolTip.Tip="{DynamicResource Update.Later}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
             <!-- Bottom Toolbar -->
             <Border Classes="bottom-toolbar" DockPanel.Dock="Bottom">

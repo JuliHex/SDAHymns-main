@@ -151,16 +151,9 @@ public partial class App : Application
                             {
                                 mainViewModel.ShowUpdateNotification(updateInfo);
                             }
-                            else if (mainWin is RemoteWidget && mainWin.DataContext is RemoteWidgetViewModel)
+                            else if (mainWin.DataContext is RemoteWidgetViewModel remoteViewModel)
                             {
-                                // For RemoteWidget, show a simple status message
-                                // (full update UI would be in MainWindow)
-                                // TODO: Add update notification to RemoteWidget status bar
-                                // For now, we'll just log it - user can see updates in advanced mode
-                                if (logger?.IsEnabled(LogLevel.Information) == true)
-                                {
-                                    logger.LogInformation("Update available: {Version}", updateInfo.TargetFullRelease.Version);
-                                }
+                                remoteViewModel.ShowUpdateNotification(updateInfo);
                             }
                         });
                     }

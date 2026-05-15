@@ -4,6 +4,7 @@ using SDAHymns.Core.Data.Models;
 using SDAHymns.Core.Models;
 using SDAHymns.Core.Services;
 using SDAHymns.Desktop.Services;
+using Velopack;
 using System;
 using System.Threading.Tasks;
 
@@ -19,6 +20,7 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     private readonly ISettingsService _settingsService;
     private readonly BroadcastSyncService _broadcastSync;
     private readonly ISearchService _searchService;
+    private readonly IUpdateService? _updateService;
 
     [ObservableProperty]
     private string _hymnNumberInput = "";
@@ -146,6 +148,21 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = LocalizationManager.Instance.GetString("Status.Ready");
 
+    // Update notification properties
+    [ObservableProperty]
+    private bool _isUpdateAvailable = false;
+
+    [ObservableProperty]
+    private string? _latestVersion;
+
+    [ObservableProperty]
+    private bool _isDownloadingUpdate = false;
+
+    [ObservableProperty]
+    private int _downloadProgress = 0;
+
+    private UpdateInfo? _pendingUpdate;
+
     public RemoteWidgetSettings Settings { get; set; }
 
     private Hymn? _currentHymn;
@@ -164,7 +181,8 @@ public partial class RemoteWidgetViewModel : ViewModelBase
         BroadcastSyncService broadcastSync,
         ISearchService searchService,
         IAudioPlayerService? audioService = null,
-        DesktopRemoteControlService? remoteControlService = null)
+        DesktopRemoteControlService? remoteControlService = null,
+        IUpdateService? updateService = null)
     {
         _hymnService = hymnService;
         _settingsService = settingsService;
@@ -172,6 +190,7 @@ public partial class RemoteWidgetViewModel : ViewModelBase
         _searchService = searchService;
         _audioService = audioService;
         _remoteControlService = remoteControlService;
+        _updateService = updateService;
 
         if (_remoteControlService != null)
         {
@@ -704,6 +723,45 @@ public partial class RemoteWidgetViewModel : ViewModelBase
     private void OpenAdvancedMode()
     {
         // This will be handled by the RemoteWidget code-behind
+    }
+
+    // Update notification methods
+    public void ShowUpdateNotification(UpdateInfo updateInfo)
+    {
+        _pendingUpdate = updateInfo;
+        LatestVersion = updateInfo.TargetFullRelease.Version.ToString();
+        IsUpdateAvailable = true;
+    }
+
+    [RelayCommand]
+    private async Task UpdateNowAsync()
+    {
+        if (_pendingUpdate == null || _updateService == null)
+            return;
+
+        IsDownloadingUpdate = true;
+        DownloadProgress = 0;
+
+        var progress = new Progress<int>(p => DownloadProgress = p);
+        var success = await _updateService.DownloadUpdatesAsync(_pendingUpdate, progress);
+
+        if (success)
+        {
+            // Apply and restart
+            _updateService.ApplyUpdatesAndRestart(_pendingUpdate);
+        }
+        else
+        {
+            // Show error
+            ShowError(LocalizationManager.Instance.GetString("Status.Error", "Error downloading update."));
+            IsDownloadingUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    private void DismissUpdate()
+    {
+        IsUpdateAvailable = false;
     }
 
     private void UpdateNavigationButtons()
